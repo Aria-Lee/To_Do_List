@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="TitleBar">
+        <item name="android:background">#F0BBFF</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+    <style name="TitleBarTheme" parent="android:Theme">
+        <item name="android:windowTitleSize">40dip</item>
+        <item name="android:windowTitleBackgroundStyle">@style/TitleBar</item>
+    </style>
+</resources>
