@@ -12,7 +12,7 @@ import kotlinx.android.synthetic.main.activity_to_do_list.*
 class Adapter(private val datalist: MutableList<ListData>): RecyclerView.Adapter<Adapter.ViewHolder>() {
 
     private var mOnItemClickListener: OnItemClickListener? = null
-    private var mOnCheckClickListener:OnCheckClickListener? = null
+//    private var mOnCheckClickListener:OnCheckClickListener? = null
     lateinit var removeItemListener:(Int)-> Boolean
 
 
@@ -21,9 +21,9 @@ class Adapter(private val datalist: MutableList<ListData>): RecyclerView.Adapter
         mOnItemClickListener = listener
     }
 
-    fun setOnCheckClickListener(listener: OnCheckClickListener){
-        mOnCheckClickListener = listener
-    }
+//    fun setOnCheckClickListener(listener: OnCheckClickListener){
+//        mOnCheckClickListener = listener
+//    }
 
 
     override fun onCreateViewHolder(parent: ViewGroup, i: Int): ViewHolder {
@@ -46,7 +46,7 @@ class Adapter(private val datalist: MutableList<ListData>): RecyclerView.Adapter
             } else {
                 (it as CheckedTextView).isChecked = false
             }
-            mOnCheckClickListener!!.checkedClick(datalist[holder.adapterPosition])
+            mOnItemClickListener!!.checkedClick(datalist[holder.adapterPosition])
         }
 
     }
@@ -84,15 +84,15 @@ class Adapter(private val datalist: MutableList<ListData>): RecyclerView.Adapter
         //position是用來處理每個位子的資料設定，並非判斷目前點擊的項目為何
         //點擊項目時，holder即為當時點擊項目的holder
         fun onItemClick(itemData: ListData)
-
+        fun checkedClick(itemData: ListData)
         //因為Acitivity必須透過holder取得checkedTextView，所以需要Viewolder參數
         //點擊項目時，就會從該項目的holder中去取得checkedTextView
         //fun onItemCheck(view: View, viewholder: ViewHolder)
     }
-
-    interface OnCheckClickListener{
-        fun checkedClick(itemData: ListData)
-    }
+//
+//    interface OnCheckClickListener{
+//
+//    }
 }
 
 

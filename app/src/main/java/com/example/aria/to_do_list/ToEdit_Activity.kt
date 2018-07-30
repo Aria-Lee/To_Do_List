@@ -15,24 +15,43 @@ class ToEdit_Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.edit_layout)
 
-        setNameText.setText(intent.getStringExtra("Topic"))
-        setDateText.setText(intent.getStringExtra("Date"))
-        setContentText.setText(intent.getStringExtra("Content"))
+        val update = intent.getBooleanExtra("Update", false)
+        if(update){ update()}
+        listener(update)
+    }
 
+    private fun listener(update: Boolean){
+        val pref = Preference(this)
         save.setOnClickListener {
-            val intent = Intent(this, ToDoList_Activity::class.java)
-            val pref = Preference(this)
-            val name : String = setNameText.text.toString()
-            val deadline: String = setDateText.text.toString()
-            val content: String = setContentText.text.toString()
-            val i = pref.getLocation()
-            val listData = ListData(i, name, deadline, content, false)
-            val jsonDataString = Gson().toJson(listData)
-//            Log.d("db Save ",jsonDataString)
-            pref.setData(jsonDataString, i.toString())
-
-            startActivity(intent)
+            if(!update){
+                val i = pref.getLocation()
+                val state = false
+                saveData(i, pref, state)
+            }
+            else{
+                val DataList = Gson().fromJson(intent.getStringExtra("DataList"), ListData::class.java)
+                val i = DataList.Location
+                val state = DataList.State
+                saveData(i, pref, state)
+            }
         }
+    }
 
+    private fun update(){
+        val DataList = Gson().fromJson(intent.getStringExtra("DataList"), ListData::class.java)
+        setNameText.setText(DataList.Topic)
+        setDateText.setText(DataList.Date)
+        setContentText.setText(DataList.Content)
+    }
+
+    private fun saveData(i: Int, pref:Preference, state: Boolean){
+        val intent = Intent(this, ToDoList_Activity::class.java)
+        val name : String = setNameText.text.toString()
+        val deadline: String = setDateText.text.toString()
+        val content: String = setContentText.text.toString()
+        val listData = ListData(i, name, deadline, content, state)
+        val jsonDataString = Gson().toJson(listData)
+        pref.setData(jsonDataString, i.toString())
+        startActivity(intent)
     }
 }

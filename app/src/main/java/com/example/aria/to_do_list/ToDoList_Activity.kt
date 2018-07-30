@@ -34,26 +34,19 @@ class ToDoList_Activity : AppCompatActivity() {
         val adapter = Adapter(persistData)
 
         adapter.setOnItemClickListener(object : Adapter.OnItemClickListener{
+            override fun checkedClick(itemData: ListData) {
+                if (!itemData.State) {
+                    itemData.State = true
+                    pref.setData(Gson().toJson(itemData), itemData.Location.toString())
+                } else {
+                    itemData.State = false
+                    pref.setData(Gson().toJson(itemData), itemData.Location.toString())
+                }
+            }
             override fun onItemClick(itemData: ListData) { showListItemDialog(itemData) }
             //必須透過viewHolder取得checkedTextView才是recyclerView的checkedTextView
             //直接使用checkedTextView會是獨立讀取layout中的checkedTextView
-            //            override fun onItemCheck(view: View, viewHolder: Adapter.ViewHolder) {
-            //                viewHolder.checkedTextView.toggle()
-            //            }
 
-        })
-
-        adapter.setOnCheckClickListener(object : Adapter.OnCheckClickListener {
-            override fun checkedClick(itemData: ListData) {
-                val jsonDataString = Gson().toJson(itemData)
-                if (!itemData.State) {
-                    itemData.State = true
-                    pref.setData(jsonDataString, itemData.Location.toString())
-                } else {
-                    itemData.State = false
-                    pref.setData(jsonDataString, itemData.Location.toString())
-                }
-            }
         })
 
         adapter.removeItemListener = {loc: Int -> pref.deleteData(loc.toString())}
@@ -81,14 +74,10 @@ class ToDoList_Activity : AppCompatActivity() {
                     startActivity(intent)
                 }
                 .setNeutralButton("Edit") { dialog, which ->
-                    val intent = Intent(this@ToDoList_Activity, ToUpdate_Activity::class.java)
+                    val intent = Intent(this@ToDoList_Activity, ToEdit_Activity::class.java)
                     val dataString = Gson().toJson(itemData)
                     intent.putExtra("DataList", dataString)
-                    //                            intent.putExtra("Topic", DataList[position].Topic)
-                    //                            intent.putExtra("Date", DataList[position].Date)
-                    //                            intent.putExtra("Content", DataList[position].Content)
-                    //                            intent.putExtra("Location", DataList[position].Location)
-                    //                            intent.putExtra("State", DataList[position].State)
+                    intent.putExtra("Update", true)
                     startActivity(intent)
                 }
                 .create()
@@ -96,14 +85,11 @@ class ToDoList_Activity : AppCompatActivity() {
     }
 
     private fun loadPersistData(pref:Preference): MutableList<ListData> {
-
         val list = mutableListOf<ListData>()
-
         for (key in pref.getAll(this)!!.keys) {
-            Log.d("db data ", pref.getData(key))
-            list.add(Gson().fromJson(pref.getData(key), ListData::class.java))
+            val data = Gson().fromJson(pref.getData(key), ListData::class.java)
+                list.add(data)
         }
-
         return list
     }
 
@@ -131,6 +117,7 @@ class ToDoList_Activity : AppCompatActivity() {
 
     val addItemClickListener = {
         val intent = Intent(this, ToEdit_Activity::class.java)
+        intent.putExtra("Update", false)
         startActivity(intent)
     }
 
