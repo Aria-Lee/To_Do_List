@@ -5,14 +5,14 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.CheckedTextView
 import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_to_do_list.*
 
-class Adapter(private val datalist: MutableList<ListData>): RecyclerView.Adapter<Adapter.ViewHolder>() {
+class Adapter( private var datalist: MutableList<ListData>): RecyclerView.Adapter<Adapter.ViewHolder>() {
 
     private var mOnItemClickListener: OnItemClickListener? = null
-//    private var mOnCheckClickListener:OnCheckClickListener? = null
     lateinit var removeItemListener:(Int)-> Boolean
 
 
@@ -20,11 +20,6 @@ class Adapter(private val datalist: MutableList<ListData>): RecyclerView.Adapter
     fun setOnItemClickListener(listener: OnItemClickListener) {
         mOnItemClickListener = listener
     }
-
-//    fun setOnCheckClickListener(listener: OnCheckClickListener){
-//        mOnCheckClickListener = listener
-//    }
-
 
     override fun onCreateViewHolder(parent: ViewGroup, i: Int): ViewHolder {
         val v = LayoutInflater.from(parent.context).inflate(R.layout.check_item, parent, false)
@@ -40,11 +35,11 @@ class Adapter(private val datalist: MutableList<ListData>): RecyclerView.Adapter
             mOnItemClickListener!!.onItemClick(datalist[holder.adapterPosition])
         }
 
-        holder.checkedTextView.setOnClickListener {
+        holder.checkBox.setOnClickListener {
             if (!datalist[holder.adapterPosition].State) {
-                (it as CheckedTextView).isChecked = true
+                (it as CheckBox).isChecked = true
             } else {
-                (it as CheckedTextView).isChecked = false
+                (it as CheckBox).isChecked = false
             }
             mOnItemClickListener!!.checkedClick(datalist[holder.adapterPosition])
         }
@@ -67,17 +62,16 @@ class Adapter(private val datalist: MutableList<ListData>): RecyclerView.Adapter
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
-
-        val checkedTextView = itemView.findViewById<CheckedTextView>(R.id.checkedTextView)
-        val checkedDate = itemView.findViewById<TextView>(R.id.checkedDate)
+        val checkedTextView = itemView.findViewById<TextView>(R.id.checkedTextView)
+        val checkDate = itemView.findViewById<TextView>(R.id.checkDate)
+        val checkBox= itemView.findViewById<CheckBox>(R.id.checkBox)
 
         fun bind(d: ListData) {
             checkedTextView.text = d.Topic
-            checkedDate.text = d.Date
-            checkedTextView.isChecked = d.State
+            checkDate.text = d.Date+"\n"+d.Time
+            checkBox.isChecked = d.State
         }
     }
-
 
     //設置可供外部使用的OnItemClickListener接口
     interface OnItemClickListener {
@@ -89,10 +83,14 @@ class Adapter(private val datalist: MutableList<ListData>): RecyclerView.Adapter
         //點擊項目時，就會從該項目的holder中去取得checkedTextView
         //fun onItemCheck(view: View, viewholder: ViewHolder)
     }
-//
-//    interface OnCheckClickListener{
-//
-//    }
+
+    fun new(newdatalist: MutableList<ListData>){
+        if (newdatalist != datalist){
+            datalist = newdatalist
+            this@Adapter.notifyDataSetChanged()
+        }
+    }
+
 }
 
 
