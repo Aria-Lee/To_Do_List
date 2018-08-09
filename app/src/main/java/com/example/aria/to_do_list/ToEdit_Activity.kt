@@ -1,28 +1,22 @@
 package com.example.aria.to_do_list
 
+import android.app.AlarmManager
 import android.app.DatePickerDialog
+import android.app.PendingIntent
 import android.app.TimePickerDialog
-import android.content.DialogInterface
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
-import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.MotionEvent
-import android.view.View
-import android.view.WindowManager
-import kotlinx.android.synthetic.main.activity_to_do_list.*
 import kotlinx.android.synthetic.main.edit_layout.*
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import java.util.*
 import android.widget.DatePicker
 import android.widget.TimePicker
 import android.widget.Toast
-import kotlinx.android.synthetic.main.edit_layout.view.*
 import java.text.SimpleDateFormat
-import java.time.DayOfWeek
 
 
 class ToEdit_Activity : AppCompatActivity() {
@@ -36,7 +30,6 @@ class ToEdit_Activity : AppCompatActivity() {
         setContentView(R.layout.edit_layout)
 
         pref = Preference(this)
-
 
         val update = intent.getBooleanExtra("Update", false)
         if (update) update()
@@ -89,24 +82,13 @@ class ToEdit_Activity : AppCompatActivity() {
         val date = setDateText.text.toString()
         val time =setTimeText.text.toString()
         val content: String = setContentText.text.toString()
-        val listData = ListData(i, name, date, time, content, state)
-        val jsonDataString = Gson().toJson(listData)
+        val itemData = ListData(i, name, date, time, cal.timeInMillis, content, state)
+        val jsonDataString = Gson().toJson(itemData)
         pref.setData(jsonDataString, i.toString())
+//        Toast.makeText(this, time,Toast.LENGTH_LONG).show()
+        alarm(itemData,jsonDataString)
         finish()
-//        startActivity(intent)
     }
-
-    private fun updateDateInView() {
-
-        val dateFormat = "yyyy.MM.dd" // mention the format you need
-        setDateText!!.setText(SimpleDateFormat(dateFormat, Locale.US).format(cal.time))
-    }
-
-    private fun updateTimeInView(){
-            val timeFormat = "HH:mm"
-            setTimeText!!.setText(SimpleDateFormat(timeFormat, Locale.US).format(cal.time))
-        }
-
 
     fun timePick(){
         TimePickerDialog(this@ToEdit_Activity,
@@ -114,6 +96,7 @@ class ToEdit_Activity : AppCompatActivity() {
                 // set DatePickerDialog to point to today's date when it loads up
                 cal.get(Calendar.HOUR_OF_DAY),
                 cal.get(Calendar.MINUTE),
+
                 true).show()
     }
 
@@ -143,5 +126,36 @@ class ToEdit_Activity : AppCompatActivity() {
             cal.set(Calendar.DAY_OF_MONTH, dayOfMonth)
             updateDateInView()
         }
+    }
+
+    private fun updateDateInView() {
+        val dateFormat = "yyyy.MM.dd" // mention the format you need
+        setDateText!!.setText(SimpleDateFormat(dateFormat, Locale.US).format(cal.time))
+    }
+
+    private fun updateTimeInView(){
+        val timeFormat = "HH:mm:ss"
+        setTimeText!!.setText(SimpleDateFormat(timeFormat, Locale.US).format(cal.time))
+    }
+
+    private fun alarm(listData:ListData, jsonDataString:String) {
+        val am =getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(this, AlarmReceiver::class.java)
+        intent.putExtra("itemData", jsonDataString)
+//        intent.putExtra("Topic", listData.Topic)
+//        intent.putExtra("Deadline", listData.Date +" "+ listData.Time)
+        intent.putExtra("i", listData.Location)
+        val pending = PendingIntent.getBroadcast(this.applicationContext, listData.Location, intent, PendingIntent.FLAG_ONE_SHOT)
+        val Info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            AlarmManager.AlarmClockInfo(System.currentTimeMillis(),pending)
+        } else {
+            TODO("VERSION.SDK_INT < LOLLIPOP")
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            am.setAlarmClock(Info,pending)
+
+//          am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),pending)
+        }
+        else am.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),pending)
     }
 }
