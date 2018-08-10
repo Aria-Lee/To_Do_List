@@ -10,7 +10,7 @@ import android.widget.CheckedTextView
 import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_to_do_list.*
 
-class Adapter( private var datalist: MutableList<ListData>): RecyclerView.Adapter<Adapter.ViewHolder>() {
+class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter<Adapter.ViewHolder>() {
 
     private var mOnItemClickListener: OnItemClickListener? = null
     lateinit var removeItemListener:(Int)-> Boolean

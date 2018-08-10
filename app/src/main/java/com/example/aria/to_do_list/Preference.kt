@@ -40,8 +40,4 @@ class Preference (context: Context) {
         }
         return false
     }
-
-
-
-
 }

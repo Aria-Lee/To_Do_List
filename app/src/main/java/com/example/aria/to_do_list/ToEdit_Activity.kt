@@ -36,13 +36,14 @@ class ToEdit_Activity : AppCompatActivity() {
         initListener(update)
     }
 
-    lateinit var DataList: ListData
+    lateinit var itemData: ListData
 
     private fun initListener(update: Boolean) {
         save.setOnClickListener {
             if (update) {
-                val i = DataList.Location
-                val state = DataList.State
+                val i = itemData.Location
+                val state = itemData.State
+//                cancelAlarm(itemData)
                 saveData(i, state)
             } else {
                 val i = pref.getLocation()
@@ -69,11 +70,11 @@ class ToEdit_Activity : AppCompatActivity() {
 
 
     private fun update(){
-        DataList = Gson().fromJson(intent.getStringExtra("DataList"), ListData::class.java)
-        setNameText.setText(DataList.Topic)
-        setDateText.setText(DataList.Date)
-        setTimeText.setText(DataList.Time)
-        setContentText.setText(DataList.Content)
+        itemData = Gson().fromJson(intent.getStringExtra("itemData"), ListData::class.java)
+        setNameText.setText(itemData.Topic)
+        setDateText.setText(itemData.Date)
+        setTimeText.setText(itemData.Time)
+        setContentText.setText(itemData.Content)
     }
 
     private fun saveData(i: Int, state: Boolean){
@@ -96,7 +97,6 @@ class ToEdit_Activity : AppCompatActivity() {
                 // set DatePickerDialog to point to today's date when it loads up
                 cal.get(Calendar.HOUR_OF_DAY),
                 cal.get(Calendar.MINUTE),
-
                 true).show()
     }
 
@@ -114,6 +114,7 @@ class ToEdit_Activity : AppCompatActivity() {
         override fun onTimeSet(view: TimePicker, min: Int, sec: Int) {
             cal.set(Calendar.HOUR_OF_DAY, min)
             cal.set(Calendar.MINUTE, sec)
+            cal.set(Calendar.SECOND,0)
             updateTimeInView()
         }
     }
@@ -134,28 +135,39 @@ class ToEdit_Activity : AppCompatActivity() {
     }
 
     private fun updateTimeInView(){
-        val timeFormat = "HH:mm:ss"
+        val timeFormat = "HH:mm"
         setTimeText!!.setText(SimpleDateFormat(timeFormat, Locale.US).format(cal.time))
     }
 
-    private fun alarm(listData:ListData, jsonDataString:String) {
+    private fun alarm(itemData:ListData, jsonDataString:String) {
         val am =getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, AlarmReceiver::class.java)
         intent.putExtra("itemData", jsonDataString)
-//        intent.putExtra("Topic", listData.Topic)
-//        intent.putExtra("Deadline", listData.Date +" "+ listData.Time)
-        intent.putExtra("i", listData.Location)
-        val pending = PendingIntent.getBroadcast(this.applicationContext, listData.Location, intent, PendingIntent.FLAG_ONE_SHOT)
-        val Info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            AlarmManager.AlarmClockInfo(System.currentTimeMillis(),pending)
-        } else {
-            TODO("VERSION.SDK_INT < LOLLIPOP")
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            am.setAlarmClock(Info,pending)
+//        intent.putExtra("Topic", itemData.Topic)
+//        intent.putExtra("Deadline", itemData.Date +" "+ itemData.Time)
+        intent.putExtra("i", itemData.Location)
 
-//          am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),pending)
+        val pending = PendingIntent.getBroadcast(this.applicationContext, itemData.Location, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+//        val Info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            AlarmManager.AlarmClockInfo(System.currentTimeMillis(),pending)
+//        } else {
+//            TODO("VERSION.SDK_INT < LOLLIPOP")
+//        }
+//
+//
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, itemData.NotifyTime,pending)
+            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),pending)
         }
-        else am.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),pending)
+        else
+//            am.setExact(AlarmManager.RTC_WAKEUP, itemData.NotifyTime,pending)
+            am.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),pending)
     }
+
+//    private fun cancelAlarm(itemData: ListData){
+//        val intent = Intent(this, AlarmReceiver::class.java)
+//        val pending = PendingIntent.getBroadcast(this.applicationContext, itemData.Location, intent, PendingIntent.FLAG_ONE_SHOT)
+//        val am =getSystemService(Context.ALARM_SERVICE) as AlarmManager
+//        am.cancel(pending)
+//    }
 }
