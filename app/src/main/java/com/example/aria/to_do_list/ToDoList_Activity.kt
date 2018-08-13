@@ -37,18 +37,7 @@ class ToDoList_Activity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        intent?.let {
-            if (it.getBooleanExtra("notification", false)) {
-                Toast.makeText(this, "fmkslg';D", Toast.LENGTH_LONG).show()
-
-                val itemData = Gson().fromJson(it.getStringExtra("itemData"), ListData::class.java)
-                showListItemDialog(itemData)
-
-            } else {
-                Toast.makeText(this, "false", Toast.LENGTH_LONG).show()
-            }
-        }
-        Toast.makeText(this, "dsf", Toast.LENGTH_LONG).show()
+        intentFromNotification(intent)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -166,31 +155,21 @@ class ToDoList_Activity : AppCompatActivity() {
         intent.putExtra("Update", false)
         startActivity(intent)
     }
-//
-//    fun intentFromNotification(){
-//        intent?.let {
-//        if (it.getBooleanExtra("notification", false)) {
-//            Toast.makeText(this, "fmkslg';D", Toast.LENGTH_LONG).show()
-//
-//            val itemData = Gson().fromJson(it.getStringExtra("itemData"), ListData::class.java)
-//            showListItemDialog(itemData)
-//        }
-//
-//    }}
+
+    fun intentFromNotification(intent:Intent?){
+        intent?.let {
+        if (it.getBooleanExtra("notification", false)) {
+            Toast.makeText(this, "fmkslg';D", Toast.LENGTH_LONG).show()
+
+            val itemData = Gson().fromJson(it.getStringExtra("itemData"), ListData::class.java)
+            showListItemDialog(itemData)
+        }
+        }
+    }
 
     fun notification() {
-        intent?.let {
-            if (it.getBooleanExtra("notification", false)) {
-                Toast.makeText(this, "fmkslg';D", Toast.LENGTH_LONG).show()
-
-                val itemData = Gson().fromJson(it.getStringExtra("itemData"), ListData::class.java)
-                showListItemDialog(itemData)
-            }
- else {
-                Toast.makeText(this, "false", Toast.LENGTH_LONG).show()
-            }
+        intentFromNotification(intent)
             intent = null
-        }
     }
 
     fun chooseAll(list:MutableList<ListData>){
@@ -201,7 +180,6 @@ class ToDoList_Activity : AppCompatActivity() {
             pref.setData(Gson().toJson(list[i]), list[i].Location.toString())
             }
             (recyclerview.adapter as Adapter).new(list)
-//            (recyclerview.adapter as Adapter).notifyDataSetChanged()
         }
         else{
             checkAll.isChecked = false
@@ -210,7 +188,6 @@ class ToDoList_Activity : AppCompatActivity() {
                 pref.setData(Gson().toJson(list[i]), list[i].Location.toString())
             }
             (recyclerview.adapter as Adapter).new(list)
-//            (recyclerview.adapter as Adapter).notifyDataSetChanged()
         }
     }
 
