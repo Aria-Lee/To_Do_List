@@ -5,4 +5,4 @@ import java.util.*
 
 
 //
-class ListData(val Location: Int, val Topic: String, val Date:String, val Time: String,val NotifyTime: Long , val Content: String, var State: Boolean)
+class ListData(val Location: Int, val Topic: String, val Deadline:String, val NotiTime: String, val NotifyTime: Long, val Content: String, var State: Boolean)

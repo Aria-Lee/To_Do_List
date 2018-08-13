@@ -5,12 +5,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.support.v4.content.ContextCompat.getSystemService
-import android.util.Log
-import android.widget.Toast
 import com.google.gson.Gson
 import android.app.PendingIntent
-import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.support.v4.app.NotificationCompat
 
 
 class AlarmReceiver : BroadcastReceiver() {
@@ -35,7 +32,8 @@ class AlarmReceiver : BroadcastReceiver() {
 
         builder.setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(itemData.Topic)
-                .setContentText("Deadline : " + itemData.Date + " " + itemData.Time)
+                .setContentText("Deadline : " + itemData.Deadline)
+//                .setStyle( Notification.BigTextStyle() .bigText("Deadline : " + itemData.Deadline))
                 .setPriority(Notification.PRIORITY_HIGH)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setContentIntent(pendingIntent)

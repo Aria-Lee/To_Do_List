@@ -14,6 +14,7 @@ import kotlinx.android.synthetic.main.edit_layout.*
 import com.google.gson.Gson
 import java.util.*
 import android.widget.DatePicker
+import android.widget.TextView
 import android.widget.TimePicker
 import android.widget.Toast
 import java.text.SimpleDateFormat
@@ -22,7 +23,8 @@ import java.text.SimpleDateFormat
 class ToEdit_Activity : AppCompatActivity() {
 
     lateinit var pref : Preference
-    val cal = Calendar.getInstance()
+    val deadlineCal = Calendar.getInstance()
+    val notiCal = Calendar.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,57 +54,77 @@ class ToEdit_Activity : AppCompatActivity() {
             }
         }
 
-        setTimeText!!.setOnTouchListener { view, motionEvent ->
-            if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-               timePick()
-            }
-            true
-        }
-
         setDateText!!.setOnTouchListener { view, motionEvent ->
             if(motionEvent.action==MotionEvent.ACTION_DOWN) {
-                datePick()
+                datePick(deadlineCal, setDateText)
             }
             true
         }
 
+        setTimeText!!.setOnTouchListener { view, motionEvent ->
+            if (motionEvent.action == MotionEvent.ACTION_DOWN) {
+               timePick(deadlineCal, setTimeText)
+            }
+            true
+        }
+
+
+
+        setNotiDateText!!.setOnTouchListener { view, motionEvent ->
+            if(motionEvent.action==MotionEvent.ACTION_DOWN) {
+                datePick(notiCal, setNotiDateText)
+            }
+            true
+        }
+
+        setNotiTimeText.setOnTouchListener { view, motionEvent ->
+            if (motionEvent.action == MotionEvent.ACTION_DOWN) {
+                timePick(notiCal, setNotiTimeText)
+            }
+            true
+        }
     }
 
 
     private fun update(){
         itemData = Gson().fromJson(intent.getStringExtra("itemData"), ListData::class.java)
+        val deadline = itemData.Deadline.split("  ")
+        val notiTime = itemData.NotiTime.split("  ")
         setNameText.setText(itemData.Topic)
-        setDateText.setText(itemData.Date)
-        setTimeText.setText(itemData.Time)
+        setDateText.setText(deadline[0])
+        setTimeText.setText(deadline[1])
+        setNotiDateText.setText(notiTime[0])
+        setNotiTimeText.setText(notiTime[1])
+//        setDateText.setText(itemData.Deadline)
+//        setTimeText.setText(itemData.NotiTime)
         setContentText.setText(itemData.Content)
     }
 
     private fun saveData(i: Int, state: Boolean){
 //        val intent = Intent(this, ToDoList_Activity::class.java)
         val name : String = setNameText.text.toString()
-        val date = setDateText.text.toString()
-        val time =setTimeText.text.toString()
+        val deadline = setDateText.text.toString() + "  " + setTimeText.text.toString()
+        val notiTime =setNotiDateText.text.toString() + "  " +setNotiTimeText.text.toString()
         val content: String = setContentText.text.toString()
-        val itemData = ListData(i, name, date, time, cal.timeInMillis, content, state)
+        val itemData = ListData(i, name, deadline, notiTime, notiCal.timeInMillis, content, state)
         val jsonDataString = Gson().toJson(itemData)
         pref.setData(jsonDataString, i.toString())
-//        Toast.makeText(this, time,Toast.LENGTH_LONG).show()
         alarm(itemData,jsonDataString)
         finish()
     }
 
-    fun timePick(){
+    fun timePick(cal : Calendar, textView: TextView){
         TimePickerDialog(this@ToEdit_Activity,
-                timeSetListener,
+                timeSetListener(cal,textView),
                 // set DatePickerDialog to point to today's date when it loads up
                 cal.get(Calendar.HOUR_OF_DAY),
                 cal.get(Calendar.MINUTE),
                 true).show()
     }
 
-    fun datePick(){
+    fun datePick(cal : Calendar, textView: TextView){
         DatePickerDialog(this@ToEdit_Activity,
-                dateSetListener,
+                dateSetListener(cal, textView),
                 // set DatePickerDialog to point to today's date when it loads up
                 cal.get(Calendar.YEAR),
                 cal.get(Calendar.MONTH),
@@ -110,64 +132,50 @@ class ToEdit_Activity : AppCompatActivity() {
         ).show()
     }
 
-    val timeSetListener = object : TimePickerDialog.OnTimeSetListener {
+    fun  timeSetListener(cal: Calendar,textView : TextView) = object : TimePickerDialog.OnTimeSetListener {
         override fun onTimeSet(view: TimePicker, min: Int, sec: Int) {
             cal.set(Calendar.HOUR_OF_DAY, min)
             cal.set(Calendar.MINUTE, sec)
             cal.set(Calendar.SECOND,0)
-            updateTimeInView()
+            updateTimeInView(cal, textView)
         }
     }
 
-    val dateSetListener = object : DatePickerDialog.OnDateSetListener {
+    fun dateSetListener(cal: Calendar,textView : TextView) = object : DatePickerDialog.OnDateSetListener {
         override fun onDateSet(view: DatePicker, year: Int, monthOfYear: Int,
                                dayOfMonth: Int) {
             cal.set(Calendar.YEAR, year)
             cal.set(Calendar.MONTH, monthOfYear)
             cal.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-            updateDateInView()
+            updateDateInView(cal, textView)
         }
     }
 
-    private fun updateDateInView() {
+    private fun updateDateInView(cal: Calendar ,textView : TextView) {
         val dateFormat = "yyyy.MM.dd" // mention the format you need
-        setDateText!!.setText(SimpleDateFormat(dateFormat, Locale.US).format(cal.time))
+        textView.text = (SimpleDateFormat(dateFormat, Locale.US).format(cal.time))
     }
 
-    private fun updateTimeInView(){
+    private fun updateTimeInView(cal: Calendar, textView : TextView){
         val timeFormat = "HH:mm"
-        setTimeText!!.setText(SimpleDateFormat(timeFormat, Locale.US).format(cal.time))
+        textView.text = SimpleDateFormat(timeFormat, Locale.US).format(cal.time)
     }
 
     private fun alarm(itemData:ListData, jsonDataString:String) {
         val am =getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, AlarmReceiver::class.java)
         intent.putExtra("itemData", jsonDataString)
-//        intent.putExtra("Topic", itemData.Topic)
-//        intent.putExtra("Deadline", itemData.Date +" "+ itemData.Time)
         intent.putExtra("i", itemData.Location)
 
         val pending = PendingIntent.getBroadcast(this.applicationContext, itemData.Location, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-//        val Info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            AlarmManager.AlarmClockInfo(System.currentTimeMillis(),pending)
-//        } else {
-//            TODO("VERSION.SDK_INT < LOLLIPOP")
-//        }
-//
-//
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, itemData.NotifyTime,pending)
-            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),pending)
+            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, itemData.NotifyTime, pending)
+//            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),pending)
         }
         else
-//            am.setExact(AlarmManager.RTC_WAKEUP, itemData.NotifyTime,pending)
-            am.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),pending)
+            am.setExact(AlarmManager.RTC_WAKEUP, itemData.NotifyTime, pending)
+//            am.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),pending)
     }
 
-//    private fun cancelAlarm(itemData: ListData){
-//        val intent = Intent(this, AlarmReceiver::class.java)
-//        val pending = PendingIntent.getBroadcast(this.applicationContext, itemData.Location, intent, PendingIntent.FLAG_ONE_SHOT)
-//        val am =getSystemService(Context.ALARM_SERVICE) as AlarmManager
-//        am.cancel(pending)
-//    }
 }

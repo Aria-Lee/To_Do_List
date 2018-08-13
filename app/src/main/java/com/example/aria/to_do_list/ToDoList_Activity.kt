@@ -5,26 +5,21 @@ import android.content.Context
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.support.v4.app.NotificationCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.*
 import android.widget.Toast
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_to_do_list.*
 import kotlinx.android.synthetic.main.dialog_title.view.*
 import kotlinx.android.synthetic.main.show_event.view.*
-import android.content.Context.NOTIFICATION_SERVICE
-import android.os.Build
-import android.support.v4.content.ContextCompat.getSystemService
-import kotlinx.android.synthetic.main.check_item.view.*
-import java.text.SimpleDateFormat
-import java.util.*
 
 
 class ToDoList_Activity : AppCompatActivity() {
     lateinit var pref: Preference
+//    lateinit var isDataExist:  (ListData) -> Boolean
+
+
 
     override fun onRestart() {
         super.onRestart()
@@ -88,7 +83,12 @@ class ToDoList_Activity : AppCompatActivity() {
 
     private fun showListItemDialog(itemData: ListData) {
         val view = layoutInflater.inflate(R.layout.show_event, null)
-        view.showDate.text = itemData.Date + "  " + itemData.Time
+//        val deadLine = itemData.Deadline.split("  ")
+//        val showDate = deadLine[0]+"\n"+deadLine[1]
+
+//        view.showDate.text = itemData.Deadline + "  " + itemData.NotiTime
+        view.showDate.text = itemData.Deadline
+        view.showNotiTime.text = itemData.NotiTime
         view.showContent.text = itemData.Content
         val titleView = layoutInflater.inflate(R.layout.dialog_title, null)
         titleView.dialogTitle.text = itemData.Topic
@@ -120,7 +120,7 @@ class ToDoList_Activity : AppCompatActivity() {
             val data = Gson().fromJson(pref.getData(key), ListData::class.java)
             list.add(data)
         }
-        list.sortWith(compareBy({ it.Date }, { it.Time }, { it.Topic }))
+        list.sortWith(compareBy({ it.Deadline }, { it.Topic }))
         return list
     }
 
@@ -159,10 +159,15 @@ class ToDoList_Activity : AppCompatActivity() {
     fun intentFromNotification(intent:Intent?){
         intent?.let {
         if (it.getBooleanExtra("notification", false)) {
-            Toast.makeText(this, "fmkslg';D", Toast.LENGTH_LONG).show()
-
+//            Toast.makeText(this, "fmkslg';D", Toast.LENGTH_LONG).show()
             val itemData = Gson().fromJson(it.getStringExtra("itemData"), ListData::class.java)
-            showListItemDialog(itemData)
+            if((recyclerview.adapter as Adapter).isDataExit(itemData)){
+                showListItemDialog(itemData)
+            }
+            else{
+                Toast.makeText(this,"The event doesn't exist.",Toast.LENGTH_LONG).show()
+            }
+
         }
         }
     }

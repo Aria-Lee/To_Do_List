@@ -1,14 +1,11 @@
 package com.example.aria.to_do_list
 
-import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
-import android.widget.CheckedTextView
 import android.widget.TextView
-import kotlinx.android.synthetic.main.activity_to_do_list.*
 
 class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter<Adapter.ViewHolder>() {
 
@@ -18,6 +15,7 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
 
     //提供給外部的setOnItemClickListener方法
     fun setOnItemClickListener(listener: OnItemClickListener) {
+
         mOnItemClickListener = listener
     }
 
@@ -36,11 +34,7 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
         }
 
         holder.checkBox.setOnClickListener {
-            if (!datalist[holder.adapterPosition].State) {
-                (it as CheckBox).isChecked = true
-            } else {
-                (it as CheckBox).isChecked = false
-            }
+            (it as CheckBox).isChecked = !datalist[holder.adapterPosition].State
             mOnItemClickListener!!.checkedClick(datalist[holder.adapterPosition])
         }
 
@@ -66,10 +60,12 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
         val checkDate = itemView.findViewById<TextView>(R.id.checkDate)
         val checkBox= itemView.findViewById<CheckBox>(R.id.checkBox)
 
-        fun bind(d: ListData) {
-            checkedTextView.text = d.Topic
-            checkDate.text = d.Date+"\n"+d.Time
-            checkBox.isChecked = d.State
+        fun bind(itemData: ListData) {
+            val deadLine = itemData.Deadline.split("  ")
+            val checkDateText = deadLine[0]+"\n"+deadLine[1]
+            checkedTextView.text = itemData.Topic
+            checkDate.text = checkDateText
+            checkBox.isChecked = itemData.State
         }
     }
 
@@ -89,6 +85,10 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
             datalist = newdatalist
             this@Adapter.notifyDataSetChanged()
         }
+    }
+
+    fun isDataExit(itemData: ListData):Boolean{
+        return itemData in datalist
     }
 
 }
