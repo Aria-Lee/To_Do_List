@@ -1,4 +1,4 @@
-package com.example.aria.to_do_list
+package com.example.aria.to_do_list.main
 
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
+import com.example.aria.to_do_list.R
+import com.example.aria.to_do_list.data.ListData
 
 class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter<Adapter.ViewHolder>() {
 
@@ -88,7 +90,8 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
     }
 
     fun isDataExit(itemData: ListData):Boolean{
-        return itemData in datalist
+        return datalist.find { i -> i.SaveTime==itemData.SaveTime} !=null
+//            return datalist.contains(itemData)
     }
 
 }

@@ -1,4 +1,4 @@
-package com.example.aria.to_do_list
+package com.example.aria.to_do_list.main
 
 import android.app.*
 import android.content.Context
@@ -9,6 +9,10 @@ import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
 import android.view.*
 import android.widget.Toast
+import com.example.aria.to_do_list.AlarmReceiver
+import com.example.aria.to_do_list.R
+import com.example.aria.to_do_list.data.ListData
+import com.example.aria.to_do_list.data.Preference
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_to_do_list.*
 import kotlinx.android.synthetic.main.dialog_title.view.*

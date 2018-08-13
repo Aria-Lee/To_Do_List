@@ -1,4 +1,4 @@
-package com.example.aria.to_do_list
+package com.example.aria.to_do_list.data
 
 import android.content.Context
 import com.google.gson.Gson

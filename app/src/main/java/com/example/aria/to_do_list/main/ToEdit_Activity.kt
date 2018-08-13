@@ -1,4 +1,4 @@
-package com.example.aria.to_do_list
+package com.example.aria.to_do_list.main
 
 import android.app.AlarmManager
 import android.app.DatePickerDialog
@@ -16,7 +16,10 @@ import java.util.*
 import android.widget.DatePicker
 import android.widget.TextView
 import android.widget.TimePicker
-import android.widget.Toast
+import com.example.aria.to_do_list.AlarmReceiver
+import com.example.aria.to_do_list.R
+import com.example.aria.to_do_list.data.ListData
+import com.example.aria.to_do_list.data.Preference
 import java.text.SimpleDateFormat
 
 
@@ -106,7 +109,8 @@ class ToEdit_Activity : AppCompatActivity() {
         val deadline = setDateText.text.toString() + "  " + setTimeText.text.toString()
         val notiTime =setNotiDateText.text.toString() + "  " +setNotiTimeText.text.toString()
         val content: String = setContentText.text.toString()
-        val itemData = ListData(i, name, deadline, notiTime, notiCal.timeInMillis, content, state)
+        val saveTime = System.currentTimeMillis()
+        val itemData = ListData(i, name, deadline, notiTime, notiCal.timeInMillis, content, state, saveTime)
         val jsonDataString = Gson().toJson(itemData)
         pref.setData(jsonDataString, i.toString())
         alarm(itemData,jsonDataString)
@@ -161,7 +165,7 @@ class ToEdit_Activity : AppCompatActivity() {
         textView.text = SimpleDateFormat(timeFormat, Locale.US).format(cal.time)
     }
 
-    private fun alarm(itemData:ListData, jsonDataString:String) {
+    private fun alarm(itemData: ListData, jsonDataString:String) {
         val am =getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, AlarmReceiver::class.java)
         intent.putExtra("itemData", jsonDataString)

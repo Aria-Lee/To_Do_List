@@ -7,7 +7,8 @@ import android.content.Intent
 import android.os.Build
 import com.google.gson.Gson
 import android.app.PendingIntent
-import android.support.v4.app.NotificationCompat
+import com.example.aria.to_do_list.data.ListData
+import com.example.aria.to_do_list.main.ToDoList_Activity
 
 
 class AlarmReceiver : BroadcastReceiver() {
