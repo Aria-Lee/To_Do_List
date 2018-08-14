@@ -38,6 +38,10 @@ class ToEdit_Activity : AppCompatActivity() {
 
         val update = intent.getBooleanExtra("Update", false)
         if (update) update()
+//        else{
+//            deadlineCal = Calendar.getInstance()
+//            notiCal = Calendar.getInstance()
+//        }
         initListener(update)
     }
 
@@ -93,6 +97,11 @@ class ToEdit_Activity : AppCompatActivity() {
         itemData = Gson().fromJson(intent.getStringExtra("itemData"), ListData::class.java)
         val deadline = itemData.Deadline.split("  ")
         val notiTime = itemData.NotiTime.split("  ")
+        val sdf = SimpleDateFormat("yyyy.MM.dd  HH:mm")
+        val initDeadline = sdf.parse(itemData.Deadline)
+        val initNotiTime = sdf.parse(itemData.NotiTime)
+        deadlineCal.setTime(initDeadline)
+        notiCal.setTime(initNotiTime)
         setNameText.setText(itemData.Topic)
         setDateText.setText(deadline[0])
         setTimeText.setText(deadline[1])
@@ -121,6 +130,7 @@ class ToEdit_Activity : AppCompatActivity() {
         TimePickerDialog(this@ToEdit_Activity,
                 timeSetListener(cal,textView),
                 // set DatePickerDialog to point to today's date when it loads up
+
                 cal.get(Calendar.HOUR_OF_DAY),
                 cal.get(Calendar.MINUTE),
                 true).show()
@@ -133,6 +143,7 @@ class ToEdit_Activity : AppCompatActivity() {
                 cal.get(Calendar.YEAR),
                 cal.get(Calendar.MONTH),
                 cal.get(Calendar.DAY_OF_MONTH)
+
         ).show()
     }
 
