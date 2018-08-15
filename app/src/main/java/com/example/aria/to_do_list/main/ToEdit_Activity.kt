@@ -61,14 +61,14 @@ class ToEdit_Activity : AppCompatActivity() {
             }
         }
 
-        setDateText!!.setOnTouchListener { view, motionEvent ->
+        setDateText.setOnTouchListener { view, motionEvent ->
             if(motionEvent.action==MotionEvent.ACTION_DOWN) {
                 datePick(deadlineCal, setDateText)
             }
             true
         }
 
-        setTimeText!!.setOnTouchListener { view, motionEvent ->
+        setTimeText.setOnTouchListener { view, motionEvent ->
             if (motionEvent.action == MotionEvent.ACTION_DOWN) {
                timePick(deadlineCal, setTimeText)
             }
@@ -77,7 +77,7 @@ class ToEdit_Activity : AppCompatActivity() {
 
 
 
-        setNotiDateText!!.setOnTouchListener { view, motionEvent ->
+        setNotiDateText.setOnTouchListener { view, motionEvent ->
             if(motionEvent.action==MotionEvent.ACTION_DOWN) {
                 datePick(notiCal, setNotiDateText)
             }
@@ -121,7 +121,7 @@ class ToEdit_Activity : AppCompatActivity() {
         val saveTime = System.currentTimeMillis()
         val itemData = ListData(i, name, deadline, notiTime, notiCal.timeInMillis, content, state, saveTime)
         val jsonDataString = Gson().toJson(itemData)
-        pref.setData(jsonDataString, i.toString())
+        pref.setData(jsonDataString, i)
         alarm(itemData,jsonDataString)
         finish()
     }

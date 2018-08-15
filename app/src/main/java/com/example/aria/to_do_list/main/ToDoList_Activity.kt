@@ -59,10 +59,10 @@ class ToDoList_Activity : AppCompatActivity() {
             override fun checkedClick(itemData: ListData) {
                 if (!itemData.State) {
                     itemData.State = true
-                    pref.setData(Gson().toJson(itemData), itemData.Location.toString())
+                    pref.setData(Gson().toJson(itemData), itemData.Location)
                 } else {
                     itemData.State = false
-                    pref.setData(Gson().toJson(itemData), itemData.Location.toString())
+                    pref.setData(Gson().toJson(itemData), itemData.Location)
                 }
             }
 
@@ -120,7 +120,7 @@ class ToDoList_Activity : AppCompatActivity() {
 //    var list= mutableListOf<ListData>()
     private fun loadPersistData(pref: Preference): MutableList<ListData> {
         val list = mutableListOf<ListData>()
-        for (key in pref.getAll(this)!!.keys) {
+        for (key in pref.getAll()!!.keys) {
             val data = Gson().fromJson(pref.getData(key), ListData::class.java)
             list.add(data)
         }
@@ -186,7 +186,7 @@ class ToDoList_Activity : AppCompatActivity() {
             checkAll.isChecked = true
             for (i in 0 .. list.size-1){
             list[i].State = true
-            pref.setData(Gson().toJson(list[i]), list[i].Location.toString())
+            pref.setData(Gson().toJson(list[i]), list[i].Location)
             }
             (recyclerview.adapter as Adapter).new(list)
         }
@@ -194,7 +194,7 @@ class ToDoList_Activity : AppCompatActivity() {
             checkAll.isChecked = false
             for (i in 0 .. list.size-1){
                 list[i].State = false
-                pref.setData(Gson().toJson(list[i]), list[i].Location.toString())
+                pref.setData(Gson().toJson(list[i]), list[i].Location)
             }
             (recyclerview.adapter as Adapter).new(list)
         }

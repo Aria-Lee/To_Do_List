@@ -25,6 +25,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val builder: Notification.Builder
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel("TodoList", "TodoList", NotificationManager.IMPORTANCE_HIGH)
+            channel.vibrationPattern
             manager.createNotificationChannel(channel)
             builder = Notification.Builder(context, "TodoList")
         } else {

@@ -7,19 +7,19 @@ class Preference (context: Context) {
 
     private val pref = context.getSharedPreferences("List", Context.MODE_PRIVATE)
 
-    fun setData(string: String, key:String) {
+    fun setData(string: String, key:Int) {
 
-            pref.edit().putString(key, string).apply()
+            pref.edit().putString(key.toString(), string).apply()
     }
 
-    fun getData(name: String):String{
-        return  pref.getString(name, null)
+    fun getData(key: String):String{
+        return  pref.getString(key, null)
     }
 
-    fun getAll(context: Context): MutableMap<String, *>? {
-        val sp = context.getSharedPreferences("List",
-                Context.MODE_PRIVATE)
-        return sp.getAll()
+    fun getAll(): MutableMap<String, *>? {
+//        val sp = context.getSharedPreferences("List",
+//                Context.MODE_PRIVATE)
+        return pref.getAll()
     }
 
     fun getLocation(): Int {
