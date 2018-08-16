@@ -14,11 +14,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import java.lang.Exception
 import java.util.*
-import kotlin.Exception
 import kotlin.coroutines.experimental.coroutineContext
-import jdk.nashorn.internal.runtime.ECMAException.getException
-import android.support.test.orchestrator.junit.BundleJUnitUtils.getResult
-import org.junit.experimental.results.ResultMatchers.isSuccessful
+
 
 
 
@@ -37,6 +34,20 @@ class CloudFirestore (var context: Context){
                             Toast.makeText(context, "Failed", Toast.LENGTH_LONG).show()
                         }
                     }
+    }
+
+    fun updateData(key:String, content:Any){
+        eventData.document(key).update(key, content)
+                .addOnCompleteListener { task ->
+                    if(task.isSuccessful){
+                        Toast.makeText(context, "Event updated", Toast.LENGTH_LONG).show()
+                    }
+                    else{
+                        Toast.makeText(context, "Update Failed", Toast.LENGTH_LONG).show()
+
+                    }
+                }
+
     }
 
     fun getData(key: String):String?{

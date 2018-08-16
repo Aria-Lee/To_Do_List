@@ -21,9 +21,6 @@ import kotlinx.android.synthetic.main.show_event.view.*
 
 class ToDoList_Activity : AppCompatActivity() {
     lateinit var pref: Preference
-//    lateinit var isDataExist:  (ListData) -> Boolean
-
-
 
     override fun onRestart() {
         super.onRestart()

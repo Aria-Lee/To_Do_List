@@ -120,6 +120,7 @@ class ToEdit_Activity : AppCompatActivity() {
         val content: String = setContentText.text.toString()
         val saveTime = System.currentTimeMillis()
         val itemData = ListData(i, name, deadline, notiTime, notiCal.timeInMillis, content, state, saveTime)
+
         val jsonDataString = Gson().toJson(itemData)
         pref.setData(jsonDataString, i)
         alarm(itemData,jsonDataString)
