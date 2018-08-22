@@ -24,9 +24,9 @@ class CloudFirestore (var context: Context){
     val fb = FirebaseFirestore.getInstance()
     val eventData = fb.collection("ToDoList")
 
-    fun setData(string: String, key:String) {
-        eventData.document(key)
-                .set(string)
+    fun setData(key:Long, map: MutableMap<String,Any>) {
+        eventData.document(key.toString())
+                .set(map)
                 .addOnCompleteListener{task->
                         if (task.isSuccessful()) {
                             Toast.makeText(context, "Event added", Toast.LENGTH_LONG).show()
@@ -36,70 +36,51 @@ class CloudFirestore (var context: Context){
                     }
     }
 
-    fun updateData(key:String, content:Any){
-        eventData.document(key).update(key, content)
+    fun updateData(key:Long, label:String ,content:Any){
+
+        eventData.document(key.toString()).update(label, content)
                 .addOnCompleteListener { task ->
                     if(task.isSuccessful){
-                        Toast.makeText(context, "Event updated", Toast.LENGTH_LONG).show()
+                        Log.d("tag", "Event updated", task.getException())
                     }
                     else{
-                        Toast.makeText(context, "Update Failed", Toast.LENGTH_LONG).show()
-
+                        Log.d("tag", "Update Failed", task.getException())
                     }
                 }
-
     }
 
-    fun getData(key: String):String?{
-        var document :String? = null
-                eventData.document(key).get().addOnCompleteListener { task ->
-                    if(task.isSuccessful){
-                        Log.d("tag", "Success", task.getException())
-                        document = eventData.document("key").get().toString()
-                    }
-                    else {
-                        Log.d("tag", "Fail", task.getException())
-                    }
-                }
-        return document
-    }
+//    fun getData(key: String):String?{
+//        var document :String? = null
+//                eventData.document(key).get().addOnCompleteListener { task ->
+//                    if(task.isSuccessful){
+//                        Log.d("tag", "Success", task.getException())
+//                        document = eventData.document("key").get().toString()
+//                    }
+//                    else {
+//                        Log.d("tag", "Fail", task.getException())
+//                    }
+//                }
+//        return document
+//    }
 
-    fun getAll(context: Context): MutableMap<String, *>? {
-        var map :MutableMap<String, *>? = null
+//    fun getAll(callback:(MutableList<ListData>) -> Unit): MutableList<ListData> {
+fun getAll(callback:(MutableList<ListData>) -> Unit){
+        var dataList = mutableListOf<ListData>()
         eventData.get().addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 for (document in task.result) {
-                    Log.d("TAG", document.id + " => " + document.data)
-                    map = document.data
+                    Log.d("xxxxx", document.id + " => " + document.data)
+                    dataList.add(document.toObject(ListData::class.java))
                 }
+                callback(dataList)
             } else {
                 Log.d("TAG", "Error getting documents: ", task.exception)
             }
         }
-        return map
     }
-//
-//    fun getLocation(): Int {
-//        var i = 0
-//        while (i >= 0) {
-//            eventData.document(i.toString()).get().addOnCompleteListener { task ->
-//                if (!task.isSuccessful) {
-//                    break
-//                } else {
-//                    i++
-//                }
-//            }
-//        }
-////            if (eventData.document(i.toString()).) {
-////                break
-////            }
-////            i++
-////        }
-//        return i
-//    }
 
-    fun deleteData(key:String):Boolean {
-        eventData.document(key).delete()
+    fun deleteData(key:Long):Boolean {
+        eventData.document(key.toString()).delete()
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         Log.d("tag", "Success", task.getException())
