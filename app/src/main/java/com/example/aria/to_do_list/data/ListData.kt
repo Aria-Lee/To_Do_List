@@ -1,10 +1,13 @@
 package com.example.aria.to_do_list.data
 
+import android.arch.persistence.room.Entity
+import android.arch.persistence.room.PrimaryKey
 
-//
+
+@Entity(tableName = "ToDoList")
 class ListData {
     constructor()
-
+    @PrimaryKey(autoGenerate = true)
     //    var location: Int = 0
     var topic: String = ""
     var deadline: String = ""
