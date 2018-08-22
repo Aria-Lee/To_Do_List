@@ -7,12 +7,13 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import android.view.*
 import android.widget.Toast
 import com.example.aria.to_do_list.AlarmReceiver
 import com.example.aria.to_do_list.R
+import com.example.aria.to_do_list.data.CloudFirestore
 import com.example.aria.to_do_list.data.ListData
-import com.example.aria.to_do_list.data.Preference
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_to_do_list.*
 import kotlinx.android.synthetic.main.dialog_title.view.*
@@ -20,18 +21,15 @@ import kotlinx.android.synthetic.main.show_event.view.*
 
 
 class ToDoList_Activity : AppCompatActivity() {
-    lateinit var pref: Preference
-//    lateinit var isDataExist:  (ListData) -> Boolean
 
+    lateinit var cf: CloudFirestore
+    var list = mutableListOf<ListData>()
 
 
     override fun onRestart() {
         super.onRestart()
-
-        (recyclerview.adapter as Adapter).new(loadPersistData(pref))
-//        Toast.makeText(this, "HIHI", Toast.LENGTH_LONG).show()
-        checkAll.isChecked=false
-//        notification()
+        getAll()
+        checkAll.isChecked = false
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -43,27 +41,26 @@ class ToDoList_Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_to_do_list)
 
-        pref = Preference(this)
-
-        recyclerview.adapter = initAdapter(pref, loadPersistData(pref))
+        cf = CloudFirestore(this)
+        getAll()
+        recyclerview.adapter = initAdapter()
         recyclerview.layoutManager = LinearLayoutManager(this)
         notification()
-        checkAll.setOnClickListener{chooseAll(loadPersistData(pref))}
+        checkAll.setOnClickListener { chooseAll() }
     }
 
     lateinit var adapter: Adapter
-    private fun initAdapter(pref: Preference, persistData: MutableList<ListData>): Adapter {
-        adapter = Adapter(persistData)
+
+    private fun initAdapter(): Adapter {
+        adapter = Adapter(list)
 
         adapter.setOnItemClickListener(object : Adapter.OnItemClickListener {
             override fun checkedClick(itemData: ListData) {
-                if (!itemData.State) {
-                    itemData.State = true
-                    pref.setData(Gson().toJson(itemData), itemData.Location.toString())
-                } else {
-                    itemData.State = false
-                    pref.setData(Gson().toJson(itemData), itemData.Location.toString())
-                }
+
+                itemData.state = !itemData.state
+                cf.updateData(itemData.key, "state", itemData.state)
+
+
             }
 
             override fun onItemClick(itemData: ListData) {
@@ -71,11 +68,15 @@ class ToDoList_Activity : AppCompatActivity() {
             }
             //必須透過viewHolder取得checkedTextView才是recyclerView的checkedTextView
             //直接使用checkedTextView會是獨立讀取layout中的checkedTextView
-
         })
 
+
+
         adapter.removeItemListener = {
-           loc: Int -> pref.deleteData(loc.toString()) && cancelAlarm(loc)
+//           loc: Int, key: Long -> pref.deleteData(loc.toString()) && cf.deleteData(key) && cancelAlarm(loc)
+            key: Long ->
+            cf.deleteData(key) && cancelAlarm(key)
+
         }
 
         return adapter
@@ -87,29 +88,22 @@ class ToDoList_Activity : AppCompatActivity() {
 
     private fun showListItemDialog(itemData: ListData) {
         val view = layoutInflater.inflate(R.layout.show_event, null)
-//        val deadLine = itemData.Deadline.split("  ")
-//        val showDate = deadLine[0]+"\n"+deadLine[1]
-
-//        view.showDate.text = itemData.Deadline + "  " + itemData.NotiTime
-        view.showDate.text = itemData.Deadline
-        view.showNotiTime.text = itemData.NotiTime
-        view.showContent.text = itemData.Content
+        view.showDate.text = itemData.deadline
+        view.showNotiTime.text = itemData.notiTime
+        view.showContent.text = itemData.content
         val titleView = layoutInflater.inflate(R.layout.dialog_title, null)
-        titleView.dialogTitle.text = itemData.Topic
+        titleView.dialogTitle.text = itemData.topic
 
-        //
         AlertDialog.Builder(this@ToDoList_Activity)
                 .setView(view)
                 .setCustomTitle(titleView)
                 .setPositiveButton("OK") { dialog, which ->
-                    //                    val intent = Intent(this@ToDoList_Activity, ToDoList_Activity::class.java)
-//                    startActivity(intent)
                     dialog.cancel()
                 }
                 .setNeutralButton("Edit") { dialog, which ->
                     val intent = Intent(this@ToDoList_Activity, ToEdit_Activity::class.java)
                     val dataString = Gson().toJson(itemData)
-                    intent.putExtra("itemData", dataString)
+                    intent.putExtra("orgItemData", dataString)
                     intent.putExtra("Update", true)
                     startActivity(intent)
                 }
@@ -117,97 +111,87 @@ class ToDoList_Activity : AppCompatActivity() {
                 .show()
     }
 
-//    var list= mutableListOf<ListData>()
-    private fun loadPersistData(pref: Preference): MutableList<ListData> {
-        val list = mutableListOf<ListData>()
-        for (key in pref.getAll(this)!!.keys) {
-            val data = Gson().fromJson(pref.getData(key), ListData::class.java)
-            list.add(data)
+
+    private fun getAll() {
+        cf.getAll { it ->
+            it.sortWith(compareBy({ it.deadline }, { it.topic }))
+            list = it
+            adapter.new(list)
+
         }
-        list.sortWith(compareBy({ it.Deadline }, { it.Topic }))
-        return list
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        super.onCreateOptionsMenu(menu)
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
+        override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+            super.onCreateOptionsMenu(menu)
+            menuInflater.inflate(R.menu.menu_main, menu)
+            return true
+        }
 
 //    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
 //        super.onCreateContextMenu(menu, v, menuInfo)
 //    }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.menu_delete) {
-            Toast.makeText(this, "Delete!!!", Toast.LENGTH_SHORT).show()
-            adapter.clearCheckedItem()
-            checkAll.isChecked = false
-            //或不在外面宣告adapter(僅在initAdpater中宣告)
-            //並在這邊直接 recyclerview.adapter as Adpater
-            return true
-        }
-        if (item.itemId == R.id.menu_add) {
-            addItemClickListener.invoke()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-    val addItemClickListener = {
-        val intent = Intent(this, ToEdit_Activity::class.java)
-        intent.putExtra("Update", false)
-        startActivity(intent)
-    }
-
-    fun intentFromNotification(intent:Intent?){
-        intent?.let {
-        if (it.getBooleanExtra("notification", false)) {
-//            Toast.makeText(this, "fmkslg';D", Toast.LENGTH_LONG).show()
-            val itemData = Gson().fromJson(it.getStringExtra("itemData"), ListData::class.java)
-            if((recyclerview.adapter as Adapter).isDataExit(itemData)){
-                showListItemDialog(itemData)
+        override fun onOptionsItemSelected(item: MenuItem): Boolean {
+            if (item.itemId == R.id.menu_delete) {
+                Toast.makeText(this, "Delete!!!", Toast.LENGTH_SHORT).show()
+                adapter.clearCheckedItem()
+                checkAll.isChecked = false
+                //或不在外面宣告adapter(僅在initAdpater中宣告)
+                //並在這邊直接 recyclerview.adapter as Adpater
+                return true
             }
-            else{
-                Toast.makeText(this,"The event doesn't exist.",Toast.LENGTH_LONG).show()
+            if (item.itemId == R.id.menu_add) {
+                addItemClickListener.invoke()
+                return true
             }
-
+            return super.onOptionsItemSelected(item)
         }
-        }
-    }
 
-    fun notification() {
-        intentFromNotification(intent)
+        val addItemClickListener = {
+            val intent = Intent(this, ToEdit_Activity::class.java)
+            intent.putExtra("Update", false)
+            startActivity(intent)
+        }
+
+        fun intentFromNotification(intent: Intent?) {
+            intent?.let {
+                if (it.getBooleanExtra("notification", false)) {
+                    val itemData = Gson().fromJson(it.getStringExtra("orgItemData"), ListData::class.java)
+                    if ((recyclerview.adapter as Adapter).isDataExit(itemData)) {
+                        showListItemDialog(itemData)
+                    } else {
+                        Toast.makeText(this, "The event doesn't exist.", Toast.LENGTH_LONG).show()
+                    }
+
+                }
+            }
+        }
+
+        fun notification() {
+            intentFromNotification(intent)
             intent = null
-    }
-
-    fun chooseAll(list:MutableList<ListData>){
-        if (checkAll.isChecked){
-            checkAll.isChecked = true
-            for (i in 0 .. list.size-1){
-            list[i].State = true
-            pref.setData(Gson().toJson(list[i]), list[i].Location.toString())
-            }
-            (recyclerview.adapter as Adapter).new(list)
         }
-        else{
-            checkAll.isChecked = false
-            for (i in 0 .. list.size-1){
-                list[i].State = false
-                pref.setData(Gson().toJson(list[i]), list[i].Location.toString())
-            }
-            (recyclerview.adapter as Adapter).new(list)
+
+
+        fun chooseAll() {
+            checkAll.isChecked = checkAll.isChecked
+                for (i in 0..list.size - 1) {
+                    list[i].state = checkAll.isChecked
+                    cf.updateData(list[i].key, "state", checkAll.isChecked)
+                    (recyclerview.adapter as Adapter).notifyDataSetChanged()
+                }
+        }
+
+        private fun cancelAlarm(key: Long): Boolean {
+            val intent = Intent(this, AlarmReceiver::class.java)
+            val pending = PendingIntent.getBroadcast(this.applicationContext, (key % Int.MAX_VALUE).toInt(), intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            am.cancel(pending)
+            return true
+
         }
     }
 
-    private fun cancelAlarm(loc: Int):Boolean{
-        val intent = Intent(this, AlarmReceiver::class.java)
-        val pending = PendingIntent.getBroadcast(this.applicationContext, loc, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-        val am =getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.cancel(pending)
-        return true
-    }
 
-}
 
 

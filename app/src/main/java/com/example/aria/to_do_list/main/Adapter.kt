@@ -12,7 +12,7 @@ import com.example.aria.to_do_list.data.ListData
 class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter<Adapter.ViewHolder>() {
 
     private var mOnItemClickListener: OnItemClickListener? = null
-    lateinit var removeItemListener:(Int)-> Boolean
+    lateinit var removeItemListener:(Long)-> Boolean
 
 
     //提供給外部的setOnItemClickListener方法
@@ -36,7 +36,7 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
         }
 
         holder.checkBox.setOnClickListener {
-            (it as CheckBox).isChecked = !datalist[holder.adapterPosition].State
+            (it as CheckBox).isChecked = !datalist[holder.adapterPosition].state
             mOnItemClickListener!!.checkedClick(datalist[holder.adapterPosition])
         }
 
@@ -46,7 +46,8 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
         var size = (datalist.size - 1)
         var i = 0
         while (i <= size) {
-            if (datalist[i].State == true && removeItemListener.invoke(datalist[i].Location)) {
+//            if (datalist[i].state == true && removeItemListener.invoke(datalist[i].location, datalist[i].key)) {
+            if (datalist[i].state == true && removeItemListener.invoke(datalist[i].key)) {
                 datalist.removeAt(i)
                 size--
                 notifyItemRemoved(i)
@@ -63,11 +64,11 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
         val checkBox= itemView.findViewById<CheckBox>(R.id.checkBox)
 
         fun bind(itemData: ListData) {
-            val deadLine = itemData.Deadline.split("  ")
+            val deadLine = itemData.deadline.split("  ")
             val checkDateText = deadLine[0]+"\n"+deadLine[1]
-            checkedTextView.text = itemData.Topic
+            checkedTextView.text = itemData.topic
             checkDate.text = checkDateText
-            checkBox.isChecked = itemData.State
+            checkBox.isChecked = itemData.state
         }
     }
 
@@ -90,8 +91,8 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
     }
 
     fun isDataExit(itemData: ListData):Boolean{
-        return datalist.find { i -> i.SaveTime==itemData.SaveTime} !=null
-//            return datalist.contains(itemData)
+//        return datalist.find { i -> i.key==orgItemData.key} !=null
+            return datalist.contains(itemData)
     }
 
 }
