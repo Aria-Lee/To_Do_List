@@ -197,11 +197,11 @@ class ToEdit_Activity : AppCompatActivity() {
         val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, AlarmReceiver::class.java)
         val i = (itemData.key % Int.MAX_VALUE).toInt()
-        intent.putExtra("orgItemData", jsonDataString)
-//        intent.putExtra("i", orgItemData.location)
+        intent.putExtra("itemData", jsonDataString)
+//        intent.putExtra("i", itemData.location)
         intent.putExtra("i", i)
 
-//        val pending = PendingIntent.getBroadcast(this.applicationContext, orgItemData.location, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+//        val pending = PendingIntent.getBroadcast(this.applicationContext, itemData.location, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         val pending = PendingIntent.getBroadcast(this.applicationContext, i, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, itemData.notiMillis, pending)

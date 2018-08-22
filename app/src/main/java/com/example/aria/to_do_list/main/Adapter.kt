@@ -91,8 +91,8 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
     }
 
     fun isDataExit(itemData: ListData):Boolean{
-//        return datalist.find { i -> i.key==orgItemData.key} !=null
-            return datalist.contains(itemData)
+        return datalist.find { i -> i.key==itemData.key} !=null
+//            return datalist.contains(itemData)
     }
 
 }
