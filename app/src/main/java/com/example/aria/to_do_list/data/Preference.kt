@@ -12,9 +12,9 @@ class Preference (context: Context) {
             pref.edit().putString(key, string).apply()
     }
 
-    fun getData(name: String):String{
-        return  pref.getString(name, null)
-    }
+//    fun getData(name: String):String{
+//        return  pref.getString(name, null)
+//    }
 
     fun getAll(context: Context): MutableMap<String, *>? {
         val sp = context.getSharedPreferences("List",

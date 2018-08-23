@@ -24,13 +24,12 @@ class ToDoList_Activity : AppCompatActivity() {
 //    lateinit var isDataExist:  (ListData) -> Boolean
 
 
-
     override fun onRestart() {
         super.onRestart()
 
-        (recyclerview.adapter as Adapter).new(loadPersistData(pref))
+        (recyclerview.adapter as Adapter).new(loadPersistData())
 //        Toast.makeText(this, "HIHI", Toast.LENGTH_LONG).show()
-        checkAll.isChecked=false
+        checkAll.isChecked = false
 //        notification()
     }
 
@@ -45,14 +44,14 @@ class ToDoList_Activity : AppCompatActivity() {
 
         pref = Preference(this)
 
-        recyclerview.adapter = initAdapter(pref, loadPersistData(pref))
+        recyclerview.adapter = initAdapter(loadPersistData())
         recyclerview.layoutManager = LinearLayoutManager(this)
         notification()
-        checkAll.setOnClickListener{chooseAll(loadPersistData(pref))}
+        checkAll.setOnClickListener { chooseAll(loadPersistData()) }
     }
 
     lateinit var adapter: Adapter
-    private fun initAdapter(pref: Preference, persistData: MutableList<ListData>): Adapter {
+    private fun initAdapter(persistData: MutableList<ListData>): Adapter {
         adapter = Adapter(persistData)
 
         adapter.setOnItemClickListener(object : Adapter.OnItemClickListener {
@@ -74,8 +73,8 @@ class ToDoList_Activity : AppCompatActivity() {
 
         })
 
-        adapter.removeItemListener = {
-           loc: Int -> pref.deleteData(loc.toString()) && cancelAlarm(loc)
+        adapter.removeItemListener = { loc: Int ->
+            pref.deleteData(loc.toString()) && cancelAlarm(loc)
         }
 
         return adapter
@@ -117,11 +116,12 @@ class ToDoList_Activity : AppCompatActivity() {
                 .show()
     }
 
-//    var list= mutableListOf<ListData>()
-    private fun loadPersistData(pref: Preference): MutableList<ListData> {
+    //    var list= mutableListOf<ListData>()
+    private fun loadPersistData(): MutableList<ListData> {
         val list = mutableListOf<ListData>()
+        val a = pref.getAll(this)
         for (key in pref.getAll(this)!!.keys) {
-            val data = Gson().fromJson(pref.getData(key), ListData::class.java)
+            val data = Gson().fromJson(a!!.get(key).toString(), ListData::class.java)
             list.add(data)
         }
         list.sortWith(compareBy({ it.Deadline }, { it.Topic }))
@@ -160,39 +160,38 @@ class ToDoList_Activity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    fun intentFromNotification(intent:Intent?){
+    fun intentFromNotification(intent: Intent?) {
         intent?.let {
-        if (it.getBooleanExtra("notification", false)) {
+            if (it.getBooleanExtra("notification", false)) {
 //            Toast.makeText(this, "fmkslg';D", Toast.LENGTH_LONG).show()
-            val itemData = Gson().fromJson(it.getStringExtra("itemData"), ListData::class.java)
-            if((recyclerview.adapter as Adapter).isDataExit(itemData)){
-                showListItemDialog(itemData)
-            }
-            else{
-                Toast.makeText(this,"The event doesn't exist.",Toast.LENGTH_LONG).show()
-            }
+                val itemData = Gson().fromJson(it.getStringExtra("itemData"), ListData::class.java)
+                if ((recyclerview.adapter as Adapter).isDataExit(itemData)) {
+                    showListItemDialog(itemData)
+                    Toast.makeText(this, "hey", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this, "The event doesn't exist.", Toast.LENGTH_LONG).show()
+                }
 
-        }
+            }
         }
     }
 
     fun notification() {
         intentFromNotification(intent)
-            intent = null
+        intent = null
     }
 
-    fun chooseAll(list:MutableList<ListData>){
-        if (checkAll.isChecked){
+    fun chooseAll(list: MutableList<ListData>) {
+        if (checkAll.isChecked) {
             checkAll.isChecked = true
-            for (i in 0 .. list.size-1){
-            list[i].State = true
-            pref.setData(Gson().toJson(list[i]), list[i].Location.toString())
+            for (i in 0..list.size - 1) {
+                list[i].State = true
+                pref.setData(Gson().toJson(list[i]), list[i].Location.toString())
             }
             (recyclerview.adapter as Adapter).new(list)
-        }
-        else{
+        } else {
             checkAll.isChecked = false
-            for (i in 0 .. list.size-1){
+            for (i in 0..list.size - 1) {
                 list[i].State = false
                 pref.setData(Gson().toJson(list[i]), list[i].Location.toString())
             }
@@ -200,14 +199,12 @@ class ToDoList_Activity : AppCompatActivity() {
         }
     }
 
-    private fun cancelAlarm(loc: Int):Boolean{
+    private fun cancelAlarm(loc: Int): Boolean {
         val intent = Intent(this, AlarmReceiver::class.java)
         val pending = PendingIntent.getBroadcast(this.applicationContext, loc, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-        val am =getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         am.cancel(pending)
         return true
     }
 
 }
-
-

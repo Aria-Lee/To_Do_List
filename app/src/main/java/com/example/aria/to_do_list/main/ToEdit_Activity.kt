@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.MotionEvent
 import kotlinx.android.synthetic.main.edit_layout.*
 import com.google.gson.Gson
@@ -122,6 +123,7 @@ class ToEdit_Activity : AppCompatActivity() {
         val itemData = ListData(i, name, deadline, notiTime, notiCal.timeInMillis, content, state, saveTime)
         val jsonDataString = Gson().toJson(itemData)
         pref.setData(jsonDataString, i.toString())
+        Log.d("aaaaa", saveTime.toString())
         alarm(itemData,jsonDataString)
         finish()
     }
