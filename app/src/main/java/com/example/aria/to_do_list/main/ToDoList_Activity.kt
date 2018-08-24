@@ -167,7 +167,6 @@ class ToDoList_Activity : AppCompatActivity() {
                 val itemData = Gson().fromJson(it.getStringExtra("itemData"), ListData::class.java)
                 if ((recyclerview.adapter as Adapter).isDataExit(itemData)) {
                     showListItemDialog(itemData)
-                    Toast.makeText(this, "hey", Toast.LENGTH_LONG).show()
                 } else {
                     Toast.makeText(this, "The event doesn't exist.", Toast.LENGTH_LONG).show()
                 }
