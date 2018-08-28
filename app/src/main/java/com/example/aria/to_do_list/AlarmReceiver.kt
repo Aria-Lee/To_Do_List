@@ -23,7 +23,7 @@ class AlarmReceiver : BroadcastReceiver() {
         it.putExtra("itemData", intent.getStringExtra("itemData"))
 
 //        val pendingIntent = PendingIntent.getActivity(context, intent.getIntExtra("i", 0), it, PendingIntent.FLAG_ONE_SHOT)
-        val pendingIntent = PendingIntent.getActivity(context, i, it, PendingIntent.FLAG_ONE_SHOT)
+        val pendingIntent = PendingIntent.getActivity(context, i, it, PendingIntent.FLAG_UPDATE_CURRENT)
 
         val builder: Notification.Builder
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
