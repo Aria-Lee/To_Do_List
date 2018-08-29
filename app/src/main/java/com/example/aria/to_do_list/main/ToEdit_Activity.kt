@@ -82,7 +82,7 @@ class ToEdit_Activity : AppCompatActivity() {
 
 
     private fun update() {
-        orgItemData = Gson().fromJson(intent.getStringExtra("orgItemData"), ListData::class.java)
+        orgItemData = Gson().fromJson(intent.getStringExtra("itemData"), ListData::class.java)
         val deadline = orgItemData.deadline.split("  ")
         val notiTime = orgItemData.notiTime.split("  ")
         val sdf = SimpleDateFormat("yyyy.MM.dd  HH:mm")
