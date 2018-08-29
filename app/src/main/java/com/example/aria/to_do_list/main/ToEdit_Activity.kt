@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.MotionEvent
 import kotlinx.android.synthetic.main.edit_layout.*
 import com.google.gson.Gson
@@ -18,25 +19,21 @@ import android.widget.TextView
 import android.widget.TimePicker
 import com.example.aria.to_do_list.AlarmReceiver
 import com.example.aria.to_do_list.R
-import com.example.aria.to_do_list.data.CloudFirestore
-import com.example.aria.to_do_list.data.ListData
 import com.example.aria.to_do_list.data.Preference
+import com.example.aria.to_do_list.data.Room.ListData
+import com.example.aria.to_do_list.data.Room.ToDoDatabase
 import java.text.SimpleDateFormat
 
 
 class ToEdit_Activity : AppCompatActivity() {
 
-    lateinit var pref: Preference
-    lateinit var cf: CloudFirestore
+    val dbDao = ToDoDatabase.getInstance(this@ToEdit_Activity)!!.ToDoDao()
     val deadlineCal = Calendar.getInstance()
     val notiCal = Calendar.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.edit_layout)
-
-        pref = Preference(this)
-        cf = CloudFirestore(this)
 
         val update = intent.getBooleanExtra("Update", false)
         if (update) update()
@@ -84,7 +81,7 @@ class ToEdit_Activity : AppCompatActivity() {
 
 
     private fun update() {
-        orgItemData = Gson().fromJson(intent.getStringExtra("orgItemData"), ListData::class.java)
+        orgItemData = Gson().fromJson(intent.getStringExtra("itemData"), ListData::class.java)
         val deadline = orgItemData.deadline.split("  ")
         val notiTime = orgItemData.notiTime.split("  ")
         val sdf = SimpleDateFormat("yyyy.MM.dd  HH:mm")
@@ -102,47 +99,35 @@ class ToEdit_Activity : AppCompatActivity() {
 
     //    private fun saveData(i: Int, state: Boolean) {
     private fun getData(update: Boolean): ListData {
-        val key: Long
-        val state: Boolean
-        if (update) {
-            key = orgItemData.key
-            state = orgItemData.state
-        } else {
-            key = System.currentTimeMillis()
-            state = false
-        }
+        val state : Boolean
+        val itemData :ListData
         val topic: String = setNameText.text.toString()
         val deadline = setDateText.text.toString() + "  " + setTimeText.text.toString()
         val notiTime = setNotiDateText.text.toString() + "  " + setNotiTimeText.text.toString()
         val notiMillis = notiCal.timeInMillis
         val content: String = setContentText.text.toString()
-
-        val itemData = ListData(topic, deadline, notiTime, notiMillis, content, state, key)
-        val jsonDataString = Gson().toJson(itemData)
-        alarm(itemData, jsonDataString)
+        if (update) {
+            state = orgItemData.state
+            val key = orgItemData.key
+            itemData = ListData(key, topic, deadline, notiTime, notiMillis, content, state)
+        } else {
+            state = false
+            itemData = ListData(topic, deadline, notiTime, notiMillis, content, state)
+        }
         return itemData
     }
 
     private fun saveData(itemData: ListData, update: Boolean) {
-        if (update) {
-            if(itemData.topic != orgItemData.topic) cf.updateData(itemData.key,"topic",itemData.topic)
-            if(itemData.deadline != orgItemData.deadline) cf.updateData(itemData.key,"deadline",itemData.deadline)
-            if(itemData.notiTime != orgItemData.notiTime) cf.updateData(itemData.key,"notiTime",itemData.notiTime)
-            if(itemData.notiMillis != orgItemData.notiMillis) cf.updateData(itemData.key,"notiMillis",itemData.notiMillis)
-            if(itemData.content != orgItemData.content) cf.updateData(itemData.key,"content",itemData.content)
-            if(itemData.state != orgItemData.state) cf.updateData(itemData.key,"state",itemData.state)
-        } else {
-            val map = mutableMapOf<String, Any>(
-                    "topic" to itemData.topic,
-                    "deadline" to itemData.deadline,
-                    "notiTime" to itemData.notiTime,
-                    "notiMillis" to itemData.notiMillis,
-                    "content" to itemData.content,
-                    "state" to itemData.state,
-                    "key" to itemData.key
-            )
-            cf.setData(itemData.key, map)
-        }
+        Thread(Runnable {
+            if (update) {
+                dbDao.update(itemData)
+                alarm(itemData)
+            } else {
+                dbDao.insert(itemData)
+                val itemData = dbDao.getData()
+                alarm(itemData)
+            }
+        }).start()
         finish()
     }
 
@@ -150,7 +135,6 @@ class ToEdit_Activity : AppCompatActivity() {
         TimePickerDialog(this@ToEdit_Activity,
                 timeSetListener(cal, textView),
                 // set DatePickerDialog to point to today's date when it loads up
-
                 cal.get(Calendar.HOUR_OF_DAY),
                 cal.get(Calendar.MINUTE),
                 true).show()
@@ -163,7 +147,6 @@ class ToEdit_Activity : AppCompatActivity() {
                 cal.get(Calendar.YEAR),
                 cal.get(Calendar.MONTH),
                 cal.get(Calendar.DAY_OF_MONTH)
-
         ).show()
     }
 
@@ -196,15 +179,16 @@ class ToEdit_Activity : AppCompatActivity() {
         textView.text = SimpleDateFormat(timeFormat, Locale.US).format(cal.time)
     }
 
-    private fun alarm(itemData: ListData, jsonDataString: String) {
+    private fun alarm(itemData: ListData) {
+        val jsonDataString = Gson().toJson(itemData)
         val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, AlarmReceiver::class.java)
         val i = (itemData.key % Int.MAX_VALUE).toInt()
-        intent.putExtra("orgItemData", jsonDataString)
-//        intent.putExtra("i", orgItemData.location)
+        intent.putExtra("itemData", jsonDataString)
+//        intent.putExtra("i", itemData.location)
         intent.putExtra("i", i)
 
-//        val pending = PendingIntent.getBroadcast(this.applicationContext, orgItemData.location, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+//        val pending = PendingIntent.getBroadcast(this.applicationContext, itemData.location, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         val pending = PendingIntent.getBroadcast(this.applicationContext, i, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, itemData.notiMillis, pending)

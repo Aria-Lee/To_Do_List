@@ -1,18 +1,20 @@
 package com.example.aria.to_do_list.main
 
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
 import com.example.aria.to_do_list.R
-import com.example.aria.to_do_list.data.ListData
+//import com.example.aria.to_do_list.data.ListData
+import com.example.aria.to_do_list.data.Room.ListData
 
 class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter<Adapter.ViewHolder>() {
 
     private var mOnItemClickListener: OnItemClickListener? = null
-    lateinit var removeItemListener:(Long)-> Boolean
+    lateinit var removeItemListener:(ListData)-> Boolean
 
 
     //提供給外部的setOnItemClickListener方法
@@ -47,7 +49,7 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
         var i = 0
         while (i <= size) {
 //            if (datalist[i].state == true && removeItemListener.invoke(datalist[i].location, datalist[i].key)) {
-            if (datalist[i].state == true && removeItemListener.invoke(datalist[i].key)) {
+            if (datalist[i].state == true && removeItemListener.invoke(datalist[i])) {
                 datalist.removeAt(i)
                 size--
                 notifyItemRemoved(i)
@@ -91,8 +93,10 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
     }
 
     fun isDataExit(itemData: ListData):Boolean{
-//        return datalist.find { i -> i.key==orgItemData.key} !=null
-            return datalist.contains(itemData)
+        return datalist.find { i -> i.key==itemData.key
+            } !=null
+
+//            return datalist.contains(itemData)
     }
 
 }

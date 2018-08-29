@@ -7,7 +7,8 @@ import android.content.Intent
 import android.os.Build
 import com.google.gson.Gson
 import android.app.PendingIntent
-import com.example.aria.to_do_list.data.ListData
+import android.util.Log
+import com.example.aria.to_do_list.data.Room.ListData
 import com.example.aria.to_do_list.main.ToDoList_Activity
 
 
@@ -15,15 +16,15 @@ class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
 
-        val itemData = Gson().fromJson(intent.getStringExtra("orgItemData"), ListData::class.java)
+        val itemData = Gson().fromJson(intent.getStringExtra("itemData"), ListData::class.java)
         val i = intent.getIntExtra("i", 0)
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val it = Intent(context, ToDoList_Activity::class.java)
         it.putExtra("notification", true)
-        it.putExtra("orgItemData", intent.getStringExtra("orgItemData"))
+        it.putExtra("itemData", intent.getStringExtra("itemData"))
 
 //        val pendingIntent = PendingIntent.getActivity(context, intent.getIntExtra("i", 0), it, PendingIntent.FLAG_ONE_SHOT)
-        val pendingIntent = PendingIntent.getActivity(context, i, it, PendingIntent.FLAG_ONE_SHOT)
+        val pendingIntent = PendingIntent.getActivity(context, i, it, PendingIntent.FLAG_UPDATE_CURRENT)
 
         val builder: Notification.Builder
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
