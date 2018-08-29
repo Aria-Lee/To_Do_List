@@ -12,7 +12,7 @@ import android.widget.Toast
 import com.example.aria.to_do_list.AlarmReceiver
 import com.example.aria.to_do_list.R
 //import com.example.aria.to_do_list.data.ListData
-import com.example.aria.to_do_list.data.Room.ListData
+import com.example.aria.to_do_list.data.ListData
 import com.example.aria.to_do_list.data.Room.ToDoDao
 import com.example.aria.to_do_list.data.Room.ToDoDatabase
 import com.google.gson.Gson
@@ -110,7 +110,7 @@ class ToDoList_Activity : AppCompatActivity() {
     private fun getAll() {
         Thread(Runnable {
             var data = dbDao.getAll()
-            list = data.sortedWith(compareBy({ it.deadline }, { it.topic })).toMutableList()
+            list = data.sortedWith(compareBy({it.deadline }, {it.topic})).toMutableList()
             this@ToDoList_Activity.runOnUiThread(Runnable {
                 adapter.new(list)
                 notification()

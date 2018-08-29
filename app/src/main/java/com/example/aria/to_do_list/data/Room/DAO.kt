@@ -1,6 +1,7 @@
 package com.example.aria.to_do_list.data.Room
 
 import android.arch.persistence.room.*
+import com.example.aria.to_do_list.data.ListData
 
 @Dao
 interface ToDoDao {

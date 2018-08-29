@@ -20,7 +20,7 @@ import android.widget.TimePicker
 import com.example.aria.to_do_list.AlarmReceiver
 import com.example.aria.to_do_list.R
 import com.example.aria.to_do_list.data.Preference
-import com.example.aria.to_do_list.data.Room.ListData
+import com.example.aria.to_do_list.data.ListData
 import com.example.aria.to_do_list.data.Room.ToDoDatabase
 import java.text.SimpleDateFormat
 

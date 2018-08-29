@@ -8,7 +8,7 @@ import android.os.Build
 import com.google.gson.Gson
 import android.app.PendingIntent
 import android.util.Log
-import com.example.aria.to_do_list.data.Room.ListData
+import com.example.aria.to_do_list.data.ListData
 import com.example.aria.to_do_list.main.ToDoList_Activity
 
 

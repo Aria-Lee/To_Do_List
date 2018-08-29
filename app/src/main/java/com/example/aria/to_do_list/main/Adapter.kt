@@ -8,13 +8,14 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
 import com.example.aria.to_do_list.R
-//import com.example.aria.to_do_list.data.ListData
-import com.example.aria.to_do_list.data.Room.ListData
+import com.example.aria.to_do_list.data.ListData
 
-class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter<Adapter.ViewHolder>() {
+//import com.example.aria.to_do_list.data.Room.ListData
+
+class Adapter(private var datalist: MutableList<ListData>) : RecyclerView.Adapter<Adapter.ViewHolder>() {
 
     private var mOnItemClickListener: OnItemClickListener? = null
-    lateinit var removeItemListener:(ListData)-> Boolean
+    lateinit var removeItemListener: (ListData) -> Boolean
 
 
     //提供給外部的setOnItemClickListener方法
@@ -44,11 +45,10 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
 
     }
 
-    fun clearCheckedItem(){
+    fun clearCheckedItem() {
         var size = (datalist.size - 1)
         var i = 0
         while (i <= size) {
-//            if (datalist[i].state == true && removeItemListener.invoke(datalist[i].location, datalist[i].key)) {
             if (datalist[i].state == true && removeItemListener.invoke(datalist[i])) {
                 datalist.removeAt(i)
                 size--
@@ -60,14 +60,14 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
         }
     }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val checkedTextView = itemView.findViewById<TextView>(R.id.checkedTextView)
         val checkDate = itemView.findViewById<TextView>(R.id.checkDate)
-        val checkBox= itemView.findViewById<CheckBox>(R.id.checkBox)
+        val checkBox = itemView.findViewById<CheckBox>(R.id.checkBox)
 
         fun bind(itemData: ListData) {
             val deadLine = itemData.deadline.split("  ")
-            val checkDateText = deadLine[0]+"\n"+deadLine[1]
+            val checkDateText = deadLine[0] + "\n" + deadLine[1]
             checkedTextView.text = itemData.topic
             checkDate.text = checkDateText
             checkBox.isChecked = itemData.state
@@ -79,25 +79,30 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
         //position是用來處理每個位子的資料設定，並非判斷目前點擊的項目為何
         //點擊項目時，holder即為當時點擊項目的holder
         fun onItemClick(itemData: ListData)
+
         fun checkedClick(itemData: ListData)
         //因為Acitivity必須透過holder取得checkedTextView，所以需要Viewolder參數
         //點擊項目時，就會從該項目的holder中去取得checkedTextView
         //fun onItemCheck(view: View, viewholder: ViewHolder)
     }
 
-    fun new(newdatalist: MutableList<ListData>){
-        if (newdatalist != datalist){
+    fun new(newdatalist: MutableList<ListData>) {
+        if (newdatalist != datalist) {
             datalist = newdatalist
             this@Adapter.notifyDataSetChanged()
         }
     }
 
-    fun isDataExit(itemData: ListData):Boolean{
-        return datalist.find { i -> i.key==itemData.key
-            } !=null
-
-//            return datalist.contains(itemData)
+    fun isDataExit(itemData: ListData): Boolean {
+        return datalist.find { i ->
+            i.key == itemData.key &&
+                    i.topic == itemData.topic &&
+                    i.deadline == itemData.deadline &&
+                    i.notiTime == itemData.notiTime &&
+                    i.content == itemData.content
+        } != null
     }
+
 
 }
 
