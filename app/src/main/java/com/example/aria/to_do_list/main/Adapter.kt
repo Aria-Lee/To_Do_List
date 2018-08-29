@@ -92,10 +92,7 @@ class Adapter(private var datalist: MutableList<ListData>): RecyclerView.Adapter
     }
 
     fun isDataExit(itemData: ListData):Boolean{
-        Log.d("dataSize",datalist.size.toString())
         return datalist.find { i ->
-            Log.d("bbbbb", i.SaveTime.toString())
-            Log.d("ccccc", itemData.SaveTime.toString())
             i.SaveTime==itemData.SaveTime
             } !=null
 
