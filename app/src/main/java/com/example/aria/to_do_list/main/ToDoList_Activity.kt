@@ -3,11 +3,11 @@ package com.example.aria.to_do_list.main
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.*
 import android.widget.Toast
 import com.example.aria.to_do_list.AlarmReceiver
@@ -18,6 +18,9 @@ import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_to_do_list.*
 import kotlinx.android.synthetic.main.dialog_title.view.*
 import kotlinx.android.synthetic.main.show_event.view.*
+import android.net.NetworkInfo
+import android.net.ConnectivityManager
+import com.example.aria.to_do_list.ClearAlarm
 
 
 class ToDoList_Activity : AppCompatActivity() {
@@ -40,6 +43,11 @@ class ToDoList_Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_to_do_list)
 
+        val mConnectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val mNetworkInfo = mConnectivityManager.activeNetworkInfo
+        if (mNetworkInfo == null) networkStateDialog("網路連線未開啟")
+        else if (!mNetworkInfo.isAvailable()) networkStateDialog("網路連線異常")
+
         cf = CloudFirestore(this)
         getAll()
         recyclerview.adapter = initAdapter()
@@ -51,6 +59,7 @@ class ToDoList_Activity : AppCompatActivity() {
 
     private fun initAdapter(): Adapter {
         adapter = Adapter(list)
+        val clearAlarm=ClearAlarm()
 
         adapter.setOnItemClickListener(object : Adapter.OnItemClickListener {
             override fun checkedClick(itemData: ListData) {
@@ -62,25 +71,28 @@ class ToDoList_Activity : AppCompatActivity() {
             override fun onItemClick(itemData: ListData) {
                 showListItemDialog(itemData)
             }
-            //必須透過viewHolder取得checkedTextView才是recyclerView的checkedTextView
-            //直接使用checkedTextView會是獨立讀取layout中的checkedTextView
         })
 
 
 
         adapter.removeItemListener = {
-//           loc: Int, key: Long -> pref.deleteData(loc.toString()) && cf.deleteData(key) && cancelAlarm(loc)
             key: Long ->
-            cf.deleteData(key) && cancelAlarm(key)
-
+            cf.deleteData(key) && clearAlarm.cancelAlarm(this,key)
         }
 
         return adapter
     }
 
-//    interface xxx {
-//        fun invoke(loc:Int) : Boolean
-//    }
+    private fun networkStateDialog(string: String) {
+        AlertDialog.Builder(this@ToDoList_Activity)
+                .setTitle("提醒")
+                .setMessage(string + "\n資料將不會同步備份至雲端\n\n*將在連線正常時同步至雲端")
+                .setPositiveButton("OK") { dialog, which ->
+                    dialog.cancel()
+                }
+                .create()
+                .show()
+    }
 
     private fun showListItemDialog(itemData: ListData) {
         val view = layoutInflater.inflate(R.layout.show_event, null)
@@ -148,7 +160,7 @@ class ToDoList_Activity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    fun intentFromNotification(intent: Intent?) {
+    private fun intentFromNotification(intent: Intent?) {
         intent?.let {
             if (it.getBooleanExtra("notification", false)) {
                 val itemData = Gson().fromJson(it.getStringExtra("itemData"), ListData::class.java)
@@ -162,26 +174,18 @@ class ToDoList_Activity : AppCompatActivity() {
         }
     }
 
-    fun notification() {
+    private fun notification() {
         intentFromNotification(intent)
         intent = null
     }
 
-    fun chooseAll() {
+    private fun chooseAll() {
         checkAll.isChecked = checkAll.isChecked
         for (i in 0..list.size - 1) {
             list[i].state = checkAll.isChecked
             cf.updateData(list[i].key, "state", checkAll.isChecked)
             (recyclerview.adapter as Adapter).notifyDataSetChanged()
         }
-    }
-
-    private fun cancelAlarm(key: Long): Boolean {
-        val intent = Intent(this, AlarmReceiver::class.java)
-        val pending = PendingIntent.getBroadcast(this.applicationContext, (key % Int.MAX_VALUE).toInt(), intent, PendingIntent.FLAG_UPDATE_CURRENT)
-        val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.cancel(pending)
-        return true
     }
 }
 

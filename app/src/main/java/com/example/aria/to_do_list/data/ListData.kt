@@ -9,7 +9,7 @@ class ListData {
     var topic: String = ""
     var deadline: String = ""
     var notiTime: String = ""
-    var notiMillis: Long = 0
+    var notiMillis: Long? = 0
     var content: String = ""
     var state: Boolean = false
     var key: Long = 0
@@ -19,7 +19,7 @@ class ListData {
             topic: String,
             deadline: String,
             notiTime: String,
-            notiMillis: Long,
+            notiMillis: Long?,
             content: String,
             state: Boolean,
             key: Long) {

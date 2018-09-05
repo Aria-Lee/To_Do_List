@@ -35,9 +35,11 @@ class AlarmReceiver : BroadcastReceiver() {
             builder = Notification.Builder(context)
         }
 
+        val deadline = if (itemData.deadline=="  ") "No Deadline" else itemData.deadline
+
         builder.setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(itemData.topic)
-                .setContentText("deadline : " + itemData.deadline)
+                .setContentText("deadline : " + deadline)
                 .setPriority(Notification.PRIORITY_HIGH)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setContentIntent(pendingIntent)

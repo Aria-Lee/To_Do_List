@@ -1,14 +1,13 @@
 package com.example.aria.to_do_list.main
 
-import android.app.AlarmManager
-import android.app.DatePickerDialog
-import android.app.PendingIntent
-import android.app.TimePickerDialog
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.MotionEvent
 import kotlinx.android.synthetic.main.edit_layout.*
 import com.google.gson.Gson
@@ -17,6 +16,7 @@ import android.widget.DatePicker
 import android.widget.TextView
 import android.widget.TimePicker
 import com.example.aria.to_do_list.AlarmReceiver
+import com.example.aria.to_do_list.ClearAlarm
 import com.example.aria.to_do_list.R
 import com.example.aria.to_do_list.data.CloudFirestore
 import com.example.aria.to_do_list.data.ListData
@@ -29,7 +29,9 @@ class ToEdit_Activity : AppCompatActivity() {
     lateinit var pref: Preference
     lateinit var cf: CloudFirestore
     val deadlineCal = Calendar.getInstance()
-    val notiCal = Calendar.getInstance()
+    var notiCal = Calendar.getInstance()
+    lateinit var cancel: (Long) -> Boolean
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,32 +53,37 @@ class ToEdit_Activity : AppCompatActivity() {
             saveData(itemData, update)
         }
 
-        setDateText.setOnTouchListener { view, motionEvent ->
-            if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-                datePick(deadlineCal, setDateText)
-            }
-            true
+        setDateText.setOnClickListener {
+            datePick(deadlineCal, setDateText)
         }
 
-        setTimeText.setOnTouchListener { view, motionEvent ->
-            if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-                timePick(deadlineCal, setTimeText)
-            }
-            true
+        setTimeText.setOnClickListener {
+            timePick(deadlineCal, setTimeText)
         }
 
-        setNotiDateText.setOnTouchListener { view, motionEvent ->
-            if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-                datePick(notiCal, setNotiDateText)
-            }
-            true
+
+        setNotiDateText.setOnClickListener {
+            datePick(notiCal!!, setNotiDateText)
         }
 
-        setNotiTimeText.setOnTouchListener { view, motionEvent ->
-            if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-                timePick(notiCal, setNotiTimeText)
-            }
-            true
+        setNotiTimeText.setOnClickListener {
+            timePick(notiCal!!, setNotiTimeText)
+        }
+
+        deleteDeadlineDate.setOnClickListener {
+            setDateText.setText("")
+        }
+
+        deleteDeadlineTime.setOnClickListener {
+            setTimeText.setText("")
+        }
+
+        deleteNotiDate.setOnClickListener {
+            setNotiDateText.setText("")
+        }
+
+        deleteNotiTime.setOnClickListener {
+            setNotiTimeText.setText("")
         }
     }
 
@@ -85,11 +92,24 @@ class ToEdit_Activity : AppCompatActivity() {
         orgItemData = Gson().fromJson(intent.getStringExtra("itemData"), ListData::class.java)
         val deadline = orgItemData.deadline.split("  ")
         val notiTime = orgItemData.notiTime.split("  ")
-        val sdf = SimpleDateFormat("yyyy.MM.dd  HH:mm")
-        val initDeadline = sdf.parse(orgItemData.deadline)
-        val initNotiTime = sdf.parse(orgItemData.notiTime)
-        deadlineCal.setTime(initDeadline)
-        notiCal.setTime(initNotiTime)
+        val sdfAll = SimpleDateFormat("yyyy.MM.dd  HH:mm")
+        val sdfDate = SimpleDateFormat("yyyy.MM.dd  ")
+        if (deadline[0] != "" && deadline[1] != "") {
+            val initDeadline = sdfAll.parse(orgItemData.deadline)
+            deadlineCal.setTime(initDeadline)
+        } else if (deadline[0] != "" && deadline[1] == "") {
+            val initDeadline = sdfDate.parse(orgItemData.deadline)
+            val hours = deadlineCal.get(Calendar.HOUR_OF_DAY)
+            val min = deadlineCal.get(Calendar.MINUTE)
+            deadlineCal.setTime(initDeadline)
+            deadlineCal.set(Calendar.HOUR_OF_DAY, hours)
+            deadlineCal.set(Calendar.MINUTE, min)
+        }
+        if (orgItemData.notiTime != "  ") {
+            val initNotiTime = sdfAll.parse(orgItemData.notiTime)
+            notiCal.setTime(initNotiTime)
+        }
+
         setNameText.setText(orgItemData.topic)
         setDateText.setText(deadline[0])
         setTimeText.setText(deadline[1])
@@ -112,42 +132,50 @@ class ToEdit_Activity : AppCompatActivity() {
         val topic: String = setNameText.text.toString()
         val deadline = setDateText.text.toString() + "  " + setTimeText.text.toString()
         val notiTime = setNotiDateText.text.toString() + "  " + setNotiTimeText.text.toString()
-        val notiMillis = notiCal.timeInMillis
+        val notiMillis = if (notiTime == "  ") null else notiCal!!.timeInMillis
         val content: String = setContentText.text.toString()
         val itemData = ListData(topic, deadline, notiTime, notiMillis, content, state, key)
-        val jsonDataString = Gson().toJson(itemData)
-        alarm(itemData, jsonDataString)
         return itemData
     }
 
     private fun saveData(itemData: ListData, update: Boolean) {
-        if (update) {
-            if(itemData.topic != orgItemData.topic) cf.updateData(itemData.key,"topic",itemData.topic)
-            if(itemData.deadline != orgItemData.deadline) cf.updateData(itemData.key,"deadline",itemData.deadline)
-            if(itemData.notiTime != orgItemData.notiTime) cf.updateData(itemData.key,"notiTime",itemData.notiTime)
-            if(itemData.notiMillis != orgItemData.notiMillis) cf.updateData(itemData.key,"notiMillis",itemData.notiMillis)
-            if(itemData.content != orgItemData.content) cf.updateData(itemData.key,"content",itemData.content)
-            if(itemData.state != orgItemData.state) cf.updateData(itemData.key,"state",itemData.state)
-        } else {
-            val map = mutableMapOf<String, Any>(
-                    "topic" to itemData.topic,
-                    "deadline" to itemData.deadline,
-                    "notiTime" to itemData.notiTime,
-                    "notiMillis" to itemData.notiMillis,
-                    "content" to itemData.content,
-                    "state" to itemData.state,
-                    "key" to itemData.key
-            )
-            cf.setData(itemData.key, map)
+        val deadline = itemData.deadline.split("  ")
+        val notiTime = itemData.notiTime.split("  ")
+        if (deadline[0] == "" && deadline[1] != "") dateCheckDialog("Deadline Time")
+        if ((notiTime[0] == "" || notiTime[1] == "") && itemData.notiTime != "  ") dateCheckDialog("提醒日期或時間")
+        else {
+            if (update) {
+                if (itemData.topic != orgItemData.topic) cf.updateData(itemData.key, "topic", itemData.topic)
+                if (itemData.deadline != orgItemData.deadline) cf.updateData(itemData.key, "deadline", itemData.deadline)
+                if (itemData.notiTime != orgItemData.notiTime) cf.updateData(itemData.key, "notiTime", itemData.notiTime)
+                if (itemData.notiMillis != orgItemData.notiMillis) cf.updateData(itemData.key, "notiMillis", itemData.notiMillis)
+                if (itemData.content != orgItemData.content) cf.updateData(itemData.key, "content", itemData.content)
+                if (itemData.state != orgItemData.state) cf.updateData(itemData.key, "state", itemData.state)
+                if (itemData.notiMillis == null) {
+                    val clearAlarm = ClearAlarm()
+                    clearAlarm.cancelAlarm(this, itemData.key)
+                }
+            } else {
+                val map = mutableMapOf<String, Any?>(
+                        "topic" to itemData.topic,
+                        "deadline" to itemData.deadline,
+                        "notiTime" to itemData.notiTime,
+                        "notiMillis" to itemData.notiMillis,
+                        "content" to itemData.content,
+                        "state" to itemData.state,
+                        "key" to itemData.key
+                )
+                cf.setData(itemData.key, map)
+            }
+            if (itemData.notiMillis != null) alarm(itemData)
+            finish()
         }
-        finish()
     }
 
     fun timePick(cal: Calendar, textView: TextView) {
         TimePickerDialog(this@ToEdit_Activity,
                 timeSetListener(cal, textView),
                 // set DatePickerDialog to point to today's date when it loads up
-
                 cal.get(Calendar.HOUR_OF_DAY),
                 cal.get(Calendar.MINUTE),
                 true).show()
@@ -193,22 +221,31 @@ class ToEdit_Activity : AppCompatActivity() {
         textView.text = SimpleDateFormat(timeFormat, Locale.US).format(cal.time)
     }
 
-    private fun alarm(itemData: ListData, jsonDataString: String) {
+    private fun alarm(itemData: ListData) {
+        val jsonDataString = Gson().toJson(itemData)
         val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, AlarmReceiver::class.java)
         val i = (itemData.key % Int.MAX_VALUE).toInt()
         intent.putExtra("itemData", jsonDataString)
-//        intent.putExtra("i", itemData.location)
         intent.putExtra("i", i)
 
-//        val pending = PendingIntent.getBroadcast(this.applicationContext, itemData.location, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         val pending = PendingIntent.getBroadcast(this.applicationContext, i, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, itemData.notiMillis, pending)
+            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, itemData.notiMillis!!.toLong(), pending)
 //            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),pending)
         } else
-            am.setExact(AlarmManager.RTC_WAKEUP, itemData.notiMillis, pending)
+            am.setExact(AlarmManager.RTC_WAKEUP, itemData.notiMillis!!.toLong(), pending)
 //            am.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),pending)
     }
 
+    private fun dateCheckDialog(string: String) {
+        AlertDialog.Builder(this@ToEdit_Activity)
+                .setTitle("提醒")
+                .setMessage("不可只填" + string)
+                .setPositiveButton("OK") { dialog, which ->
+                    dialog.cancel()
+                }
+                .create()
+                .show()
+    }
 }
