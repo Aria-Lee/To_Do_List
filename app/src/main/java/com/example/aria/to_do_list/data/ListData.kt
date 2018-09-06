@@ -19,7 +19,7 @@ class ListData {
     @ColumnInfo(name = "notiTime")
     var notiTime: String = ""
     @ColumnInfo(name = "notiMillis")
-    var notiMillis: Long = 0
+    var notiMillis: Long? = 0
     @ColumnInfo(name = "content")
     var content: String = ""
     @ColumnInfo(name = "state")
@@ -29,7 +29,7 @@ class ListData {
             topic: String,
             deadline: String,
             notiTime: String,
-            notiMillis: Long,
+            notiMillis: Long?,
             content: String,
             state: Boolean) {
         this.topic = topic
@@ -45,7 +45,7 @@ class ListData {
             topic: String,
             deadline: String,
             notiTime: String,
-            notiMillis: Long,
+            notiMillis: Long?,
             content: String,
             state: Boolean) {
         this.key = key

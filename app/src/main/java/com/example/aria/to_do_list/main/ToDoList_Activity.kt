@@ -3,13 +3,16 @@ package com.example.aria.to_do_list.main
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import android.view.*
 import android.widget.Toast
 import com.example.aria.to_do_list.AlarmReceiver
+import com.example.aria.to_do_list.ClearAlarm
 import com.example.aria.to_do_list.R
 //import com.example.aria.to_do_list.data.ListData
 import com.example.aria.to_do_list.data.ListData
@@ -22,7 +25,7 @@ import kotlinx.android.synthetic.main.show_event.view.*
 
 
 class ToDoList_Activity : AppCompatActivity() {
-    lateinit var dbDao : ToDoDao
+    lateinit var dbDao: ToDoDao
     var list = mutableListOf<ListData>()
 
 
@@ -41,6 +44,8 @@ class ToDoList_Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_to_do_list)
         dbDao = ToDoDatabase.getInstance(this@ToDoList_Activity)!!.ToDoDao()
+
+        val mConnectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         getAll()
         recyclerview.adapter = initAdapter()
         recyclerview.layoutManager = LinearLayoutManager(this)
@@ -51,7 +56,6 @@ class ToDoList_Activity : AppCompatActivity() {
 
     private fun initAdapter(): Adapter {
         adapter = Adapter(list)
-
         adapter.setOnItemClickListener(object : Adapter.OnItemClickListener {
             override fun checkedClick(itemData: ListData) {
 
@@ -70,16 +74,16 @@ class ToDoList_Activity : AppCompatActivity() {
 
 
 
-        adapter.removeItemListener = {
-            itemData: ListData -> delete(itemData)  && cancelAlarm(itemData.key)
+        adapter.removeItemListener = { itemData: ListData ->
+            if (itemData.notiMillis == null) delete(itemData)
+            else {
+                val clearAlarm = ClearAlarm()
+                delete(itemData) && clearAlarm.cancelAlarm(this, itemData.key)
+            }
         }
 
         return adapter
     }
-
-//    interface xxx {
-//        fun invoke(loc:Int) : Boolean
-//    }
 
     private fun showListItemDialog(itemData: ListData) {
         val view = layoutInflater.inflate(R.layout.show_event, null)
@@ -110,7 +114,7 @@ class ToDoList_Activity : AppCompatActivity() {
     private fun getAll() {
         Thread(Runnable {
             var data = dbDao.getAll()
-            list = data.sortedWith(compareBy({it.deadline }, {it.topic})).toMutableList()
+            list = data.sortedWith(compareBy({ it.deadline }, { it.topic })).toMutableList()
             this@ToDoList_Activity.runOnUiThread(Runnable {
                 adapter.new(list)
                 notification()
@@ -180,20 +184,11 @@ class ToDoList_Activity : AppCompatActivity() {
         }
     }
 
-    fun delete(itemData: ListData):Boolean{
+    fun delete(itemData: ListData): Boolean {
         Thread(Runnable {
             dbDao.delete(itemData)
         }).start()
         return true
-    }
-
-    private fun cancelAlarm(key: Long): Boolean {
-        val intent = Intent(this, AlarmReceiver::class.java)
-        val pending = PendingIntent.getBroadcast(this.applicationContext, (key % Int.MAX_VALUE).toInt(), intent, PendingIntent.FLAG_UPDATE_CURRENT)
-        val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        am.cancel(pending)
-        return true
-
     }
 }
 

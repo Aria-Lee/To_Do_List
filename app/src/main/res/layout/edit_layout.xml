@@ -120,6 +120,75 @@
             android:hint="Time" />
     </android.support.design.widget.TextInputLayout>
 
+    <ImageButton
+        android:id="@+id/deleteDeadlineDate"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginTop="20dp"
+        android:background="#00000000"
+        android:paddingLeft="4dp"
+        android:paddingRight="1dp"
+        android:paddingTop="4dp"
+        android:scaleType="centerInside"
+        app:layout_constraintBottom_toBottomOf="@+id/setDeadLineDate"
+        app:layout_constraintEnd_toEndOf="@+id/setDeadLineDate"
+        app:layout_constraintTop_toTopOf="@+id/setDeadLineDate"
+        app:srcCompat="@mipmap/ic_clear" />
+
+    <ImageButton
+        android:id="@+id/deleteDeadlineTime"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginTop="20dp"
+        android:background="#00000000"
+        android:paddingLeft="4dp"
+        android:paddingRight="1dp"
+        android:paddingTop="4dp"
+        android:scaleType="centerInside"
+        app:layout_constraintBottom_toBottomOf="@+id/setDeadLineTime"
+        app:layout_constraintEnd_toEndOf="@+id/setDeadLineTime"
+        app:layout_constraintTop_toTopOf="@+id/setDeadLineTime"
+        app:srcCompat="@mipmap/ic_clear" />
+
+    <ImageButton
+        android:id="@+id/deleteNotiDate"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginTop="20dp"
+        android:layout_weight="1"
+        android:background="#00000000"
+        android:paddingLeft="4dp"
+        android:paddingRight="1dp"
+        android:paddingTop="4dp"
+        android:scaleType="centerInside"
+        app:layout_constraintBottom_toBottomOf="@+id/setNotiDate"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="@+id/setNotiDate"
+        app:srcCompat="@mipmap/ic_clear" />
+
+    <ImageButton
+        android:id="@+id/deleteNotiTime"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginTop="20dp"
+        android:background="#00000000"
+        android:paddingLeft="4dp"
+        android:paddingRight="1dp"
+        android:paddingTop="4dp"
+        android:scaleType="centerInside"
+        app:layout_constraintBottom_toBottomOf="@+id/setNotiTime"
+        app:layout_constraintEnd_toEndOf="@+id/setNotiTime"
+        app:layout_constraintTop_toTopOf="@+id/setNotiTime"
+        app:srcCompat="@mipmap/ic_clear" />
+
     <android.support.constraint.ConstraintLayout
         android:id="@+id/constraintLayout2"
         android:layout_width="match_parent"
@@ -177,6 +246,15 @@
         android:text="Save"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintGuide_percent="0.5"
         app:layout_constraintStart_toStartOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

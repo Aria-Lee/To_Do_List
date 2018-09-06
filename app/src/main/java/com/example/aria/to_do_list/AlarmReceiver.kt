@@ -23,7 +23,6 @@ class AlarmReceiver : BroadcastReceiver() {
         it.putExtra("notification", true)
         it.putExtra("itemData", intent.getStringExtra("itemData"))
 
-//        val pendingIntent = PendingIntent.getActivity(context, intent.getIntExtra("i", 0), it, PendingIntent.FLAG_ONE_SHOT)
         val pendingIntent = PendingIntent.getActivity(context, i, it, PendingIntent.FLAG_UPDATE_CURRENT)
 
         val builder: Notification.Builder
@@ -35,9 +34,11 @@ class AlarmReceiver : BroadcastReceiver() {
             builder = Notification.Builder(context)
         }
 
+        val deadline = if (itemData.deadline=="  ") "No Deadline" else itemData.deadline
+
         builder.setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(itemData.topic)
-                .setContentText("deadline : " + itemData.deadline)
+                .setContentText("deadline : " + deadline)
                 .setPriority(Notification.PRIORITY_HIGH)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setContentIntent(pendingIntent)
